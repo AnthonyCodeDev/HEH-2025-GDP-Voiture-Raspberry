@@ -58,7 +58,7 @@ def main():
             distance_droite  = capteur_droite.distance * 100
 
             # Priorité au capteur avant
-            if distance_avant < OBSTACLE_THRESHOLD_CM:
+            if distance_avant < (OBSTACLE_THRESHOLD_CM + 15):
                 print(f"Obstacle détecté par le capteur avant ({round(distance_avant,2)} cm).")
                 # Arrêt immédiat
                 motor_ctrl.stop()
