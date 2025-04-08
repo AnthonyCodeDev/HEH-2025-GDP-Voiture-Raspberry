@@ -12,12 +12,13 @@ class ServoController:
     Auteur : Anthony Vergeylen
     Date   : 08-04-2025
     """
+
     def __init__(self, center=320, minimum=200, maximum=500):
         self.pwm = PCA.PWM()
         self.pwm.frequency = 60
-        self.center_val = center   # Valeur PWM pour des roues droites (0° relatif)
-        self.min_val = minimum     # Valeur PWM pour -50° relatif
-        self.max_val = maximum     # Valeur PWM pour +50° relatif
+        self.center_val = center
+        self.min_val = minimum
+        self.max_val = maximum
 
     def rotate(self, angle):
         """
@@ -66,13 +67,7 @@ class ServoController:
         print("PWM désactivé.")
 
 def main():
-    """
-    Test du réajustement des roues :
-      1. On positionne les roues à +50°.
-      2. On attend 5 secondes.
-      3. On réinitialise les roues à 0° relatif (droites) à l'aide de resetRoue().
-      4. On désactive le signal PWM.
-    """
+    # TEST !
     servo = ServoController()
     
     print("Rotation des roues à +50°...")
