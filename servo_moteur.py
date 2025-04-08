@@ -22,7 +22,7 @@ class ServoController:
         self.rotate(0)
 
 if __name__ == "__main__":
-    servo = SimpleServo()
+    servo = ServoController()
     servo.reset_position()
     time.sleep(1)
     servo.rotate(45)
