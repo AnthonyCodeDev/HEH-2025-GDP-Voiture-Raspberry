@@ -4,9 +4,9 @@ from time import sleep
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-ENA = 16  # PWM OUT2
-IN1 = 19  # Sens 1
-IN2 = 18  # Sens 2
+ENA = 5  # PWM OUT2
+IN1 = 18  # Sens 1
+IN2 = 19  # Sens 2
 
 GPIO.setup([ENA, IN1, IN2], GPIO.OUT)
 
