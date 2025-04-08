@@ -5,7 +5,7 @@ from moteur import MotorController
 from servo_controller import ServoController
 
 class TourEn8:
-    def __init__(self, speed=50, total_time=12, dt=0.05):
+    def __init__(self, speed=50, total_time=12, dt=0.01):
         self.motor = MotorController()
         self.servo = ServoController()
         self.speed = speed
