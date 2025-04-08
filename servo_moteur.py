@@ -9,24 +9,20 @@ class ServoController:
         self._center = center
         self._min = minimum
         self._max = maximum
-        # Désactive la sortie PWM dès l'initialisation pour éviter les impulsions intempestives
         self.disable_output()
         time.sleep(0.1)
-        # Positionne le servo en position neutre
+        self.enable_output()
         self.reset()
         print("Servo initialisé. Position neutre définie.")
 
     def disable_output(self):
-        """
-        Désactive la sortie PWM sur le canal utilisé.
-        En supposant que l'envoi de "off" = 4096 désactive la sortie.
-        """
         self._servo.write(0, 0, 4096)
 
+    def enable_output(self):
+        # Écriture d'une valeur valide (<4096) permet de réactiver la sortie
+        self._servo.write(0, 0, 0)
+
     def move(self, angle):
-        """
-        Positionne le servo à un angle compris entre -45° et 45°.
-        """
         angle = max(-45, min(45, angle))
         if angle >= 0:
             pulse = self._center + ((angle / 45.0) * (self._max - self._center))
@@ -35,17 +31,7 @@ class ServoController:
         self._servo.write(0, 0, int(pulse))
 
     def reset(self):
-        """
-        Positionne le servo à la valeur centrale (neutre).
-        """
         self._servo.write(0, 0, int(self._center))
 
 if __name__ == "__main__":
     servo = ServoController()
-    # Optionnel : tester quelques mouvements après initialisation
-    # time.sleep(1)
-    # servo.move(45)
-    # time.sleep(1)
-    # servo.move(-45)
-    # time.sleep(1)
-    # servo.reset()
