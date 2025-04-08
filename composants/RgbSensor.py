@@ -1,6 +1,10 @@
+#Created by Wiktor Chabowski
+#07-04-2024
+#Part of nano-computers project
+
 import pigpio
 
-from composants.ISensor import ISensor
+from ISensor import ISensor
 
 COMMAND_BIT = 0x80
 ENABLE      = 0x00
@@ -20,12 +24,15 @@ class RgbSensor(ISensor):
     @param name: name of the component (str)
     @param pins: list of pins used by the component (list<int>)
     @param color: color detected, transformed into readable format using a range of colors (str)
+    @param address: I2C address of the sensor (int)
+    @param bus: I2C bus number (int
     """
 
     def __init__(self, name: str="", pins: list=..., address = 0x29, bus=1):
 
         self._name = name
         self._color = None
+        self._pins = pins if pins is not None else []
 
         #pigpio daemon
         self._pi = pigpio.pi()
@@ -37,38 +44,94 @@ class RgbSensor(ISensor):
         
 
     def _initialize_sensor(self):
+        """Initiallize ENABLE, ATIME and CONTROL registers
+        ENABLE: 0x03 activates the sensor
+        ATIME: 0xD5 determines integration time 
+        CONTROL: 0x01 sets the gain to amplify light signal
+
+        :raises IOError: Error while putting values into specific register
+        """
+
         # Power on the sensor by writing to the ENABLE register.
         # For TCS34725, writing 0x03 to ENABLE turns on the oscillator and enables the sensor.
-        self.bus.write_byte_data(self.address, COMMAND_BIT | ENABLE, 0x03)
-        # Set integration time (e.g., 0xD5) and gain (e.g., 0x01) as needed.
-        self.bus.write_byte_data(self.address, COMMAND_BIT | ATIME, 0xD5)
-        self.bus.write_byte_data(self.address, COMMAND_BIT | CONTROL, 0x01)
+        try:
+            ret = self._pi.i2c_write_byte_data(self._handle, COMMAND_BIT | ENABLE, 0x03)
+            if ret < 0:
+                raise IOError("Failed to write to ENABLE register")
+            ret = self._pi.i2c_write_byte_data(self._handle, COMMAND_BIT | ATIME, 0xD5)
+            if ret < 0:
+                raise IOError("Failed to write to ATIME register")
+            ret = self._pi.i2c_write_byte_data(self._handle, COMMAND_BIT | CONTROL, 0x01)
+            if ret < 0:
+                raise IOError("Failed to write to CONTROL register")
+        except Exception as e:
+            raise IOError(f"Error initializing RGB sensor: {e}")
+        
+    def read_byte(self, register: int):
+        """Reads a single byte from the specified register
+
+        :raises IOError: Error while reading byte from a specific register
+        """
+
+        try:
+            count, data = self._pi.i2c_read_byte_data(self._handle, COMMAND_BIT | register)
+            if count != 1:
+                raise IOError(f"Failed to read byte from register 0x{register:02X}")
+            return data
+        except Exception as e:
+            raise IOError(f"Error reading byte from register 0x{register:02X}: {e}")
 
     def _read_word(self, register):
         """Reads a word (two bytes) from the specified register."""
-        low = self.bus.read_byte_data(self.address, COMMAND_BIT | register)
-        high = self.bus.read_byte_data(self.address, COMMAND_BIT | (register + 1))
+
+        low = self.read_byte(register)
+        high = self.read_byte(register + 1)
         return (high << 8) | low
     
     def read_data(self):
-        """Reads 3 bytes for colors, transforms them into integers and defines the color based on a range of color"""
-         
-        red   = int.from_bytes(self._read_word(RDATAL))
-        green = int.from_bytes(self._read_word(GDATAL))
-        blue  = int.from_bytes(self._read_word(BDATAL))
+        """Reads 3 bytes for colors, transforms them into integers and defines the color based on a range of color
+        
+        :raises IOError: Error while reading data from sensor
+        """
 
-        if (red > green + blue):
-            return "RED"
-        elif (green > red + blue):
-            return "GREEN"
-        elif (blue > green + red):
-            return "BLUE"
-        else:
-            return "NOT_DEFINED"
+        try:
+            red = self._read_word(RDATAL)
+            green = self._read_word(GDATAL)
+            blue = self._read_word(BDATAL)
+
+            if red > green + blue and red > 130:
+                self._color = "RED"
+            elif green > red + blue and green > 130:
+                self._color = "GREEN"
+            elif blue > red + green and blue > 130:
+                self._color = "BLUE"
+            else:
+                self._color = "NOT_DEFINED"
+            return self._color
+        except Exception as e:
+            raise IOError(f"Error reading RGB sensor data: {e}")
 
 
     def display_data(self):
-        """Displays data after treating"""
+        """Displays data after treating
+        
+        :raises Exception: Error while displaying sensor data
+        """
 
-        self._color = self.read_data()
-        pass
+        try:
+            color = self.read_data()
+            print(f"Detected Color: {color}")
+        except Exception as e:
+            print(f"Error displaying RGB sensor data: {e}")
+
+    def close(self):
+        """Closes the I2C connection and the pigpio instance
+        
+        :raises IOError: Error while closing i2c connection
+        """
+
+        try:
+            self._pi.i2c_close(self._handle)
+            self._pi.stop()
+        except Exception as e:
+            raise IOError(f"Error closing RGB sensor: {e}")

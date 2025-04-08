@@ -1,12 +1,13 @@
-from abc import abstractmethod, ABCMeta
-from gpiozero import *
+#Created by Wiktor Chabowski
+#07-04-2024
+#Part of nano-computers project
 
-class ISensor:
+from abc import abstractmethod, ABC
+
+class ISensor(ABC):
     """
     Interface for all sensors with common behavior
     """
-
-    __metadata__ = ABCMeta
 
     @abstractmethod
     def read_data(self):
