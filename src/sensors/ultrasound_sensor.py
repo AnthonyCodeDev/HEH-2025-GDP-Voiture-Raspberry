@@ -67,10 +67,10 @@ class ultrasound_sensor(i_sensor):
         :raises Exception: Error with incorrect distance measured
         """
 
-        distance_cm = self._sensor.distance  # DistanceSensor returns the distance in meters.
-        if distance_cm is None or distance_cm * 100 < MIN_DIST or distance_cm * 100 > MAX_DIST:
+        distance_cm = self._sensor.distance * 100 # DistanceSensor returns the distance in meters.
+        if distance_cm is None or distance_cm < MIN_DIST or distance_cm > MAX_DIST:
             raise ValueError("Invalid distance measurement.")
-        return distance_cm * 100  # Convert meters to centimeters.
+        return distance_cm  # Convert meters to centimeters.
     
     def getSensor(self):
         return self._sensor

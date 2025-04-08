@@ -2,6 +2,7 @@
 #07-04-2024
 #Part of nano-computers project
 
+import time
 from gpiozero import DigitalInputDevice
 
 from .i_sensor import i_sensor
@@ -22,7 +23,7 @@ class infrared_sensor(i_sensor):
 
         self._digitalDevice = DigitalInputDevice(pin=pin, pull_up=True, active_state=True)
         self._name = name
-        self._state = False
+        self._state = self._digitalDevice.value
 
     def read_data(self):
         """Reads data from the sensor
@@ -44,16 +45,19 @@ class infrared_sensor(i_sensor):
         """
 
         try:
-            #Appel de log listener si implémenté
-            data = self.read_data()
-            if data:
+            if self._digitalDevice.value:
+                start_time = time.monotonic()
+                #continue checking until 0.5 second have passed
+                while (time.monotonic() - start_time) < 0.5:
+
+                    #lazy waiting
+                    time.sleep(0.005)
+                    if not self._digitalDevice.value:
+                        print("WHITE")
+                        return
+                #if it remains after 0.5 seconds
                 print("BLACK")
             else:
                 print("WHITE")
         except Exception as e:
             print(f"Error displaying sensor data: {e}")
-
-    def change_state(self):
-        """Change the  :attr:`_state` of white/black"""
-
-        self._state = not self._state

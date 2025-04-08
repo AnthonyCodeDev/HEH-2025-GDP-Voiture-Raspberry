@@ -36,10 +36,10 @@ class rgb_sensor(i_sensor):
 
         #pigpio daemon
         self._pi = pigpio.pi()
-        if not self.pi.connected:
+        if not self._pi.connected:
             raise IOError("Could not connect to pigpio daemon")
         # Open an I2C connection on the specified bus and address
-        self.handle = self.pi.i2c_open(bus, address)
+        self.handle = self._pi.i2c_open(bus, address)
         self._initialize_sensor()
         
 
@@ -53,7 +53,7 @@ class rgb_sensor(i_sensor):
         """
 
         # Power on the sensor by writing to the ENABLE register.
-        # For TCS34725, writing 0x03 to ENABLE turns on the oscillator and enables the sensor.
+        # For TCS34725, writing 0x03 to ENABLE turns on the oscillator and enables the sensor
         try:
             ret = self._pi.i2c_write_byte_data(self._handle, COMMAND_BIT | ENABLE, 0x03)
             if ret < 0:
@@ -99,11 +99,13 @@ class rgb_sensor(i_sensor):
             green = self._read_word(GDATAL)
             blue = self._read_word(BDATAL)
 
-            if red > green + blue and red > 130:
+            percent_of_tolerance = 1.2
+
+            if red > green * percent_of_tolerance and red > blue * percent_of_tolerance and red > 100:
                 self._color = "RED"
-            elif green > red + blue and green > 130:
+            elif green > red * percent_of_tolerance and green > blue * percent_of_tolerance and green > 100:
                 self._color = "GREEN"
-            elif blue > red + green and blue > 130:
+            elif blue > green * percent_of_tolerance and blue > red * percent_of_tolerance and blue > 100:
                 self._color = "BLUE"
             else:
                 self._color = "NOT_DEFINED"
