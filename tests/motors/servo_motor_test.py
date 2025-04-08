@@ -2,10 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-import logging
 
-# Configuration du logger
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Ajout du chemin vers le dossier src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src')))
