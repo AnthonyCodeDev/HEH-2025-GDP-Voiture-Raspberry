@@ -1,26 +1,31 @@
-from gpiozero import Motor, PWMOutputDevice
+from dcmotor import DCMotor
+from machine import Pin, PWM
 from time import sleep
 
-# Configuration selon ton schéma (A5)
-# GPIO 18 = IN1, GPIO 19 = IN2, GPIO 17 = PWM (ENA)
-motor = Motor(forward=18, backward=19)
-pwm = PWMOutputDevice(16)
+# Fréquence pour le signal PWM
+frequency = 15000
 
-print("🔋 Activation du moteur DC2 (PWM)")
-pwm.value = 1.0  # Pleine puissance (entre 0.0 et 1.0)
+# Définition des broches selon le câblage utilisé (à adapter si besoin)
+pin1 = Pin(5, Pin.OUT)     # IN1
+pin2 = Pin(4, Pin.OUT)     # IN2
+enable = PWM(Pin(13), freq=frequency)  # ENA (PWM)
 
-print("🚗 Avance...")
-motor.forward()
-sleep(2)
+# Création de l'objet moteur
+dc_motor = DCMotor(pin1, pin2, enable)
 
-print("⛔ Stop")
-motor.stop()
-sleep(1)
+# Mouvement vers l'avant à 70% de vitesse
+print("🚗 Avance")
+dc_motor.forward(70)
+sleep(3)
 
-print("🔁 Recule...")
-motor.backward()
-sleep(2)
+# Mouvement en arrière à 60% de vitesse
+print("🔙 Recule")
+dc_motor.backwards(60)
+sleep(3)
 
-print("🛑 Stop & désactivation PWM")
-motor.stop()
-pwm.value = 0
+# Arrêt du moteur
+print("🛑 Arrêt")
+dc_motor.stop()
+
+# Fin du script
+print("✅ Fin du programme")
