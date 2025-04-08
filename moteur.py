@@ -9,6 +9,7 @@ class MotorController:
 
     Auteur : Anthony Vergeylen
     Date   : 08-04-2025
+    Quoi   : Contrôle de deux moteurs à courant continu via un pont en H.
     """
     def __init__(self):
         """
@@ -17,6 +18,7 @@ class MotorController:
         
         Auteur : Anthony Vergeylen
         Date   : 08-04-2025
+        Quoi   : Contrôle de deux moteurs à courant continu via un pont en H.
         """
         self.__moteur0_pin_a = 17
         self.__moteur0_pin_b = 18
@@ -50,6 +52,7 @@ class MotorController:
         
         Auteur : Anthony Vergeylen
         Date   : 08-04-2025
+        Quoi   : Permet d'appliquer l'état des sorties pour un moteur.
         """
         GPIO.output(pin_a, GPIO.HIGH if pwm_value > 0 else GPIO.LOW)
         GPIO.output(pin_b, GPIO.LOW if pwm_value > 0 else GPIO.HIGH)
@@ -64,6 +67,7 @@ class MotorController:
         
         Auteur : Anthony Vergeylen
         Date   : 08-04-2025
+        Quoi   : Faire avancer les moteurs à la vitesse spécifiée.
         """
         pwm_val = self.__scale_speed(speed)
         self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, pwm_val)
@@ -77,6 +81,7 @@ class MotorController:
         
         Auteur : Anthony Vergeylen
         Date   : 08-04-2025
+        Quoi   : Faire reculer les moteurs à la vitesse spécifiée.
         """
         if speed < 0:
             pwm_val = self.__scale_speed(speed)
@@ -91,6 +96,7 @@ class MotorController:
         
         Auteur : Anthony Vergeylen
         Date   : 08-04-2025
+        Quoi   : Arrêter les moteurs.
         """
         self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, 0)
         self.__apply_motor_state(self.__moteur1_pin_a, self.__moteur1_pin_b, 0)
@@ -104,6 +110,7 @@ class MotorController:
         
         Auteur : Anthony Vergeylen
         Date   : 08-04-2025
+        Quoi   : Convertir une vitesse de 0 à 100 en une valeur PWM.
         """
         return speed * 4095 / 100
 
@@ -114,6 +121,7 @@ def main():
     
     Auteur : Anthony Vergeylen
     Date   : 08-04-2025
+    Quoi   : Fonction principale pour tester le contrôleur de moteurs.
     """
     try:
         motor_ctrl = MotorController()
