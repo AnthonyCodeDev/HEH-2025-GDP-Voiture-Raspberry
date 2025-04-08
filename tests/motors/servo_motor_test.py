@@ -17,16 +17,16 @@ class TestServoMotor(unittest.TestCase):
         self.servo = ServoMotor(pin=0) 
 
     def test_tourner_max_droite(self):
-        self.servo.set_angle(180)
+        self.servo.set_angle(135)
         self.assertAlmostEqual(self.mock_servo_instance.value, 1, delta=0.01)
         
     def test_tourner_max_gauche(self):
-        self.servo.set_angle(0)
+        self.servo.set_angle(45)
         self.assertAlmostEqual(self.mock_servo_instance.value, -1, delta=0.01)
 
     def test_tourner_positions_invalides(self):
         nom = str("droite")
-        for invalide in [ -1, 181]:
+        for invalide in [ 44, 136]:
             with self.subTest(valeur=invalide):
                 with self.assertRaises(ValueError):
                     self.servo.set_angle(invalide)
