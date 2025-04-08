@@ -5,7 +5,7 @@ from moteur import MotorController
 from servo_controller import ServoController
 
 class TourEn8:
-    def __init__(self, speed=35, total_time=9, dt=0.02):
+    def __init__(self, speed=35, total_time=12, dt=0.02):
         self.motor = MotorController()
         self.servo = ServoController()
         self.speed = speed
@@ -15,7 +15,7 @@ class TourEn8:
     def run(self):
         start_time = time.time()
         try:
-            while time.time() - start_time < self.total_time:
+            while time.time() - start_time < self.total_time -2:
                 t = time.time() - start_time
                 angle = 50 * math.sin(2 * math.pi * t / self.total_time)
                 self.servo.rotate(angle)
