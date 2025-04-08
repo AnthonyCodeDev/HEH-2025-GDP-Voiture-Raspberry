@@ -4,10 +4,10 @@ import time
 
 class ServoController:
     """
-    Contrôleur de servo.
+    Contrôleur de servo pour les roues.
     
-    Permet de positionner le servo via un angle relatif par rapport à la position centrale (0° relatif,
-    correspondant généralement à 90° absolu). La plage de déplacement relative est ici étendue de -50° à +50°.
+    Permet de positionner les roues via un angle relatif par rapport à la position centrée (0° relatif),
+    correspondant à des roues droites. La plage de déplacement relative est ici étendue de -50° à +50°.
     
     Auteur : Anthony Vergeylen
     Date   : 08-04-2025
@@ -15,67 +15,60 @@ class ServoController:
     def __init__(self, center=320, minimum=200, maximum=500):
         self.pwm = PCA.PWM()
         self.pwm.frequency = 60
-        self.center_val = center    # PWM pour la position centrale (0° relatif)
-        self.min_val = minimum      # PWM pour -50° relatif
-        self.max_val = maximum      # PWM pour +50° relatif
+        self.center_val = center   # Valeur PWM pour des roues droites (0° relatif)
+        self.min_val = minimum     # Valeur PWM pour -50° relatif
+        self.max_val = maximum     # Valeur PWM pour +50° relatif
 
     def rotate(self, angle):
         """
-        Positionne le servo à un angle relatif compris entre -50° et +50°.
-        Un angle positif déplace le servo vers la droite, un angle négatif vers la gauche.
+        Positionne les roues à un angle relatif compris entre -50° et +50°.
+        Un angle positif déplace les roues vers la droite, un angle négatif vers la gauche.
         
         :param angle: Angle relatif désiré (entre -50 et 50).
         """
-        original_angle = angle
+        # Contraindre l'angle dans [-50, 50]
         angle = max(-50, min(50, angle))
         if angle >= 0:
             pulse = self.center_val + ((angle / 50.0) * (self.max_val - self.center_val))
         else:
             pulse = self.center_val + ((angle / 50.0) * (self.center_val - self.min_val))
-        print(f"rotate({original_angle}) => Angle contraint: {angle} -> Pulse: {int(pulse)}")
         self.pwm.write(0, 0, int(pulse))
+        print(f"rotate({angle}) -> PWM: {int(pulse)}")
+
+    def resetRoue(self):
+        """
+        Remet les roues en position droite (0° relatif).
+        Force la valeur PWM à la valeur centrée calibrée, 
+        garantissant ainsi que les roues sont bien droites.
+        """
+        self.pwm.write(0, 0, int(self.center_val))
+        print(f"resetRoue() -> PWM: {int(self.center_val)}")
 
     def disable_pwm(self):
         """
-        Désactive la sortie PWM (envoie la valeur 4096) pour ne plus maintenir le signal.
+        Désactive la sortie PWM pour libérer le servo (les roues ne maintiennent plus une position active).
         """
-        print("Désactivation du PWM (envoi de 4096).")
         self.pwm.write(0, 0, 4096)
+        print("PWM désactivé.")
 
 def main():
     """
-    Séquence de mouvement du servo :
-      1. Mettre le servo au centre (0° relatif) et maintenir pendant 5 secondes.
-      2. Tourner à +50° (droite) et maintenir pendant 5 secondes.
-      3. Tourner à -50° (gauche) et maintenir pendant 5 secondes.
-      4. Remettre le servo au centre (0° relatif) puis désactiver le PWM.
-    
-    Auteur : Anthony Vergeylen
-    Date   : 08-04-2025
+    Test du réajustement des roues :
+      1. On positionne les roues à +50°.
+      2. On attend 5 secondes.
+      3. On réinitialise les roues à 0° relatif (droites) à l'aide de resetRoue().
+      4. On désactive le signal PWM.
     """
     servo = ServoController()
     
-    # Position centrale
-    print("Positionnement au centre (0° relatif)")
-    servo.rotate(0)
-    time.sleep(1)  # PWM actif pendant 5 secondes pour observer le mouvement
+    print("Rotation des roues à +50°...")
+    servo.rotate(50)
+    time.sleep(5)
     
-    # # Rotation vers la droite
-    # print("Rotation vers la droite (+50° relatif)")
-    # servo.rotate(50)
-    # time.sleep(5)
+    print("Réinitialisation des roues à la position droite (0° relatif)...")
+    servo.resetRoue()
+    time.sleep(5)
     
-    # # Rotation vers la gauche
-    # print("Rotation vers la gauche (-50° relatif)")
-    # servo.rotate(-50)
-    # time.sleep(5)
-    
-    # # Remise au centre
-    # print("Remise au centre (0° relatif)")
-    # servo.rotate(0)
-    # time.sleep(5)
-    
-    # Désactivation du PWM
     servo.disable_pwm()
 
 if __name__ == "__main__":
