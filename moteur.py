@@ -5,9 +5,9 @@ from time import sleep
 # On utilise ici la classe LED (une simple sortie digitale)
 # qui convient pour activer/désactiver les enable du L298N.
 # Moteur 1 (sur la pin GPIO 5)
-moteur1 = LED(5)
+moteur1 = LED(1)
 # Moteur 2 (sur la pin GPIO 4)
-moteur2 = LED(4)
+moteur2 = LED(6)
 
 # Fonction pour démarrer les moteurs en avant
 def demarrer_moteurs():
