@@ -58,7 +58,7 @@ def main():
     # Position centrale
     print("Positionnement au centre (0° relatif)")
     servo.rotate(0)
-    time.sleep(5)  # PWM actif pendant 5 secondes pour observer le mouvement
+    time.sleep(1)  # PWM actif pendant 5 secondes pour observer le mouvement
     
     # # Rotation vers la droite
     # print("Rotation vers la droite (+50° relatif)")
