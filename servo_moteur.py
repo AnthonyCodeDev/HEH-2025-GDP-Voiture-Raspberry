@@ -58,7 +58,7 @@ def main():
     servo = ServoController()
     
     # Position centrale
-    servo.rotate(0)
+    servo.rotate(320)
     servo.disable_pwm()
 
 if __name__ == "__main__":
