@@ -16,7 +16,6 @@ import time
 import math
 
 class PWM(object):
-    """A PWM control class for PCA9685."""
     _MODE1              = 0x00
     _MODE2              = 0x01
     _SUBADR1            = 0x02
@@ -70,7 +69,6 @@ class PWM(object):
             return 1
 
     def _get_pi_revision(self):
-        "Gets the version number of the Raspberry Pi board"
         # Courtesy quick2wire-python-api
         # https://github.com/quick2wire/quick2wire-python-api
         # Updated revision info from: http://elinux.org/RPi_HardwareHistory#Board_Revision_History
@@ -107,7 +105,6 @@ class PWM(object):
             f.close()
 
     def __init__(self, bus_number=None, address=0x40):
-        '''Init the class with bus_number and address'''
         if self._DEBUG:
             print (self._DEBUG_INFO, "Debug on")
         self.address = address
@@ -130,7 +127,6 @@ class PWM(object):
         self.frequency = 60
 
     def _write_byte_data(self, reg, value):
-        '''Write data to I2C with self.address'''
         if self._DEBUG:
             print (self._DEBUG_INFO, 'Writing value %2X to %2X' % (value, reg))
         try:
@@ -140,7 +136,6 @@ class PWM(object):
             self._check_i2c()
 
     def _read_byte_data(self, reg):
-        '''Read data from I2C with self.address'''
         if self._DEBUG:
             print (self._DEBUG_INFO, 'Reading value from %2X' % reg)
         try:
@@ -166,9 +161,6 @@ class PWM(object):
             print ("Seems like I2C has not been set. Use 'sudo raspi-config' to set I2C")
         cmd = "i2cdetect -y %s" % self.bus_number
         output = commands.getoutput(cmd)
-        print ("Your PCA9685 address is set to 0x%02X" % self.address)
-        print ("i2cdetect output:")
-        print (output)
         outputs = output.split('\n')[1:]
         addresses = []
         for tmp_addresses in outputs:
@@ -177,7 +169,6 @@ class PWM(object):
             for address in tmp_addresses:
                 if address != '--':
                     addresses.append(address)
-        print ("Connected i2c device:")
         if addresses == []:
             print ("None")
         else:
@@ -197,7 +188,6 @@ class PWM(object):
 
     @frequency.setter
     def frequency(self, freq):
-        '''Set PWM frequency'''
         if self._DEBUG:
             print (self._DEBUG_INFO, 'Set frequency to %d' % freq)
         self._frequency = freq
@@ -221,7 +211,6 @@ class PWM(object):
         self._write_byte_data(self._MODE1, old_mode | 0x80)
 
     def write(self, channel, on, off):
-        '''Set on and off value on specific channel'''
         if self._DEBUG:
             print (self._DEBUG_INFO, 'Set channel "%d" to value "%d"' % (channel, off))
         self._write_byte_data(self._LED0_ON_L+4*channel, on & 0xFF)
@@ -230,7 +219,6 @@ class PWM(object):
         self._write_byte_data(self._LED0_OFF_H+4*channel, off >> 8)
 
     def write_all_value(self, on, off):
-        '''Set on and off value on all channel'''
         if self._DEBUG:
             print (self._DEBUG_INFO, 'Set all channel to value "%d"' % (off))
         self._write_byte_data(self._ALL_LED_ON_L, on & 0xFF)
@@ -239,7 +227,6 @@ class PWM(object):
         self._write_byte_data(self._ALL_LED_OFF_H, off >> 8)
 
     def map(self, x, in_min, in_max, out_min, out_max):
-        '''To map the value from arange to another'''
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
     @property
@@ -248,7 +235,6 @@ class PWM(object):
 
     @debug.setter
     def debug(self, debug):
-        '''Set if debug information shows'''
         if debug in (True, False):
             self._DEBUG = debug
         else:
@@ -261,12 +247,3 @@ class PWM(object):
 
 if __name__ == '__main__':
     import time
-
-
-    #pwm = PWM()
-    #pwm._check_i2c()
-    #pwm.frequency = 50
-    #for j in range(204):
-    #    pwm.write(0, 204, 204+j)
-    #    print ('PWM value: %d' % j)
-    #    time.sleep(0.1)
