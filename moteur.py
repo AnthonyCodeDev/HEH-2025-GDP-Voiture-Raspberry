@@ -5,8 +5,8 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
 ENA = 5  # PWM OUT2
-IN1 = 18  # Sens 1
-IN2 = 19  # Sens 2
+IN1 = 11  # Sens 1
+IN2 = 12  # Sens 2
 
 GPIO.setup([ENA, IN1, IN2], GPIO.OUT)
 
