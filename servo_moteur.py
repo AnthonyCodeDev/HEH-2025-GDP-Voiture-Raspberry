@@ -26,7 +26,6 @@ class ServoController:
         
         :param angle: Angle relatif désiré (entre -50 et 50).
         """
-        # Contrainte de l'angle dans l'intervalle [-50, 50]
         original_angle = angle
         angle = max(-50, min(50, angle))
         if angle >= 0:
@@ -38,8 +37,7 @@ class ServoController:
 
     def disable_pwm(self):
         """
-        Désactive la sortie PWM afin de ne pas maintenir le signal.
-        Cela coupe le signal sur le canal PWM pour libérer le servo.
+        Désactive la sortie PWM (envoie la valeur 4096) pour ne plus maintenir le signal.
         """
         print("Désactivation du PWM (envoi de 4096).")
         self.pwm.write(0, 0, 4096)
@@ -47,39 +45,37 @@ class ServoController:
 def main():
     """
     Séquence de mouvement du servo :
-      1. Positionnement à 0° relatif (centre) puis attente 5 secondes.
-      2. Rotation vers la droite à +50° relatif puis attente 5 secondes.
-      3. Rotation vers la gauche à -50° relatif puis attente 5 secondes.
-      4. Remise au centre (0° relatif) puis désactivation du PWM.
-    
-    Après chaque commande, la sortie PWM est désactivée pour libérer le servo.
+      1. Mettre le servo au centre (0° relatif) et maintenir pendant 5 secondes.
+      2. Tourner à +50° (droite) et maintenir pendant 5 secondes.
+      3. Tourner à -50° (gauche) et maintenir pendant 5 secondes.
+      4. Remettre le servo au centre (0° relatif) puis désactiver le PWM.
     
     Auteur : Anthony Vergeylen
     Date   : 08-04-2025
     """
     servo = ServoController()
     
-    # 1. Positionnement au centre (0° relatif)
+    # Position centrale
     print("Positionnement au centre (0° relatif)")
     servo.rotate(0)
-    servo.disable_pwm()
-    time.sleep(5)
+    time.sleep(5)  # PWM actif pendant 5 secondes pour observer le mouvement
     
-    # 2. Rotation vers la droite (+50° relatif)
+    # Rotation vers la droite
     print("Rotation vers la droite (+50° relatif)")
     servo.rotate(50)
-    servo.disable_pwm()
     time.sleep(5)
     
-    # 3. Rotation vers la gauche (-50° relatif)
+    # Rotation vers la gauche
     print("Rotation vers la gauche (-50° relatif)")
     servo.rotate(-50)
-    servo.disable_pwm()
     time.sleep(5)
     
-    # 4. Remise au centre et désactivation du PWM
-    print("Remise au centre (0° relatif) et désactivation finale du PWM")
+    # Remise au centre
+    print("Remise au centre (0° relatif)")
     servo.rotate(0)
+    time.sleep(5)
+    
+    # Désactivation du PWM
     servo.disable_pwm()
 
 if __name__ == "__main__":
