@@ -1,24 +1,33 @@
-from gpiozero import LED
+import RPi.GPIO as GPIO
 from time import sleep
 
-moteur1 = LED(5)  # Pin GPIO 5 (moteur 1)
-moteur2 = LED(4)  # Pin GPIO 4 (moteur 2)
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
-def demarrer_moteurs():
-    print("Démarrage des moteurs (en avant).")
-    moteur1.on()
-    moteur2.on()
+ENA = 16  # PWM OUT2
+IN1 = 19  # Sens 1
+IN2 = 18  # Sens 2
 
-def arreter_moteurs():
-    print("Arrêt des moteurs.")
-    moteur1.off()
-    moteur2.off()
+GPIO.setup([ENA, IN1, IN2], GPIO.OUT)
 
-if __name__ == "__main__":
-    try:
-        demarrer_moteurs()
-        sleep(5)
-        arreter_moteurs()
-    except KeyboardInterrupt:
-        arreter_moteurs()
-        print("Interrompu par l’utilisateur.")
+# Allume PWM (100%)
+GPIO.output(ENA, GPIO.HIGH)
+
+print("🟢 Avance (IN1 HIGH / IN2 LOW)")
+GPIO.output(IN1, GPIO.HIGH)
+GPIO.output(IN2, GPIO.LOW)
+sleep(2)
+
+print("🟡 Stop")
+GPIO.output(IN1, GPIO.LOW)
+GPIO.output(IN2, GPIO.LOW)
+sleep(1)
+
+print("🔴 Recule (IN1 LOW / IN2 HIGH)")
+GPIO.output(IN1, GPIO.LOW)
+GPIO.output(IN2, GPIO.HIGH)
+sleep(2)
+
+print("🛑 Fin")
+GPIO.output(ENA, GPIO.LOW)
+GPIO.cleanup()
