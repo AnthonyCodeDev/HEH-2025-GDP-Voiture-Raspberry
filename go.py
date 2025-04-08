@@ -57,8 +57,6 @@ def main():
             distance_gauche  = capteur_gauche.distance * 100
             distance_droite  = capteur_droite.distance * 100
 
-            # Priorité au capteur avant
-            print(distance_avant)
             if distance_avant < (OBSTACLE_THRESHOLD_CM + 15):
                 print(f"Obstacle détecté par le capteur avant ({round(distance_avant,2)} cm).")
                 # Arrêt immédiat
@@ -127,6 +125,9 @@ def main():
             
             # Petite pause pour limiter la fréquence de contrôle
             time.sleep(0.1)
+            # si distance_avant est set alors afficher la distance avant (debug)
+            if distance_avant > 1:
+                print(f"Distance avant : {round(distance_avant,2)} cm")
     
     except KeyboardInterrupt:
         print("Ctrl+C détecté : arrêt en cours...")
