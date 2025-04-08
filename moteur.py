@@ -1,26 +1,40 @@
-from gpiozero import Motor, PWMOutputDevice
+import RPi.GPIO as GPIO
 from time import sleep
 
-# Configuration selon ton schéma (A5)
-# GPIO 18 = IN1, GPIO 19 = IN2, GPIO 17 = PWM (ENA)
-motor = Motor(forward=18, backward=19)
-pwm = PWMOutputDevice(16)
+# Configuration
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
-print("🔋 Activation du moteur DC2 (PWM)")
-pwm.value = 1.0  # Pleine puissance (entre 0.0 et 1.0)
+# Définir les pins
+IN4 = 19
+IN5 = 18
+ENA = 16
 
-print("🚗 Avance...")
-motor.forward()
+GPIO.setup(IN4, GPIO.OUT)
+GPIO.setup(IN5, GPIO.OUT)
+GPIO.setup(ENA, GPIO.OUT)
+
+# Créer un PWM à 100 Hz
+pwm = GPIO.PWM(ENA, 100)
+pwm.start(100)  # 100% de vitesse
+
+print("➡️ Moteur AVANCE (19 HIGH, 18 LOW)")
+GPIO.output(IN4, GPIO.HIGH)
+GPIO.output(IN5, GPIO.LOW)
 sleep(2)
 
-print("⛔ Stop")
-motor.stop()
+print("⛔ STOP")
+GPIO.output(IN4, GPIO.LOW)
+GPIO.output(IN5, GPIO.LOW)
 sleep(1)
 
-print("🔁 Recule...")
-motor.backward()
+print("⬅️ Moteur RECULE (19 LOW, 18 HIGH)")
+GPIO.output(IN4, GPIO.LOW)
+GPIO.output(IN5, GPIO.HIGH)
 sleep(2)
 
-print("🛑 Stop & désactivation PWM")
-motor.stop()
-pwm.value = 0
+print("🛑 Arrêt et nettoyage")
+GPIO.output(IN4, GPIO.LOW)
+GPIO.output(IN5, GPIO.LOW)
+pwm.stop()
+GPIO.cleanup()
