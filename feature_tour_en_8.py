@@ -12,7 +12,7 @@ Quoi   : Combinaison de commandes moteurs et servo pour tracer un chemin en 8.
 import time
 import RPi.GPIO as GPIO
 from moteur import MotorController
-from servo_controlleur import ServoController
+from servo_controller import ServoController
 
 def tour_en_8():
     """
