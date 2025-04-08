@@ -4,7 +4,7 @@ import time
 
 # Capteur CD2 - GPIO 6 (TRIG), GPIO 5 (ECHO)
 factory = PiGPIOFactory()
-sensor_cd2 = DistanceSensor(echo=9, trigger=11, pin_factory=factory)
+sensor_cd2 = DistanceSensor(echo=7, trigger=9, pin_factory=factory)
 
 while True:
     try:
