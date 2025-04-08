@@ -4,8 +4,8 @@ import time
 import sys
 
 # Définir les broches (attention : gpiozero attend TRIG puis ECHO dans l'ordre inverse de RPi.GPIO)
-TRIG = 11  # Orange
-ECHO = 9   # Jaune (modifié selon ta photo — GPIO 21 n'est pas correct)
+TRIG = 6  # Orange
+ECHO = 5   # Jaune (modifié selon ta photo — GPIO 21 n'est pas correct)
 
 def auto_check(sensor):
     print("📡 Vérification du capteur HC-SR04...")
