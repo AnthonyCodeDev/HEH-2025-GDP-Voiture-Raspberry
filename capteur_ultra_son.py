@@ -39,7 +39,7 @@ resultats = []
 
 for trig in gpio_list:
     for echo in gpio_list:
-        print("essais: " + trig + " " + echo)
+        print("essais: " + str(trig) + " " + str(echo))
         res = test_combinaison(trig, echo)
         if res:
             resultats.append(res)
