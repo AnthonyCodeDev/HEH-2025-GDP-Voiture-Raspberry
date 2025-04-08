@@ -4,34 +4,29 @@ import time
 
 class ServoController:
     def __init__(self, center=320, minimum=200, maximum=500):
-        self._servo = PCA.PWM()
-        self._servo.frequency = 60
-        self._center = center
-        self._min = minimum
-        self._max = maximum
-        self.disable_output()
-        time.sleep(0.1)
-        self.enable_output()
-        self.reset()
-        print("Servo initialisé. Position neutre définie.")
+        self.servo = PCA.PWM()
+        self.servo.frequency = 60
+        self.center_val = center
+        self.min_val = minimum
+        self.max_val = maximum
 
-    def disable_output(self):
-        self._servo.write(0, 0, 4096)
-
-    def enable_output(self):
-        # Écriture d'une valeur valide (<4096) permet de réactiver la sortie
-        self._servo.write(0, 0, 0)
-
-    def move(self, angle):
+    def rotate(self, angle):
         angle = max(-45, min(45, angle))
-        if angle >= 0:
-            pulse = self._center + ((angle / 45.0) * (self._max - self._center))
+        if angle > 0:
+            pulse = self.center_val + ((angle / 45.0) * (self.max_val - self.center_val))
         else:
-            pulse = self._center + ((angle / 45.0) * (self._center - self._min))
-        self._servo.write(0, 0, int(pulse))
+            pulse = self.center_val + ((angle / 45.0) * (self.center_val - self.min_val))
+        self.servo.write(0, 0, int(pulse))
 
-    def reset(self):
-        self._servo.write(0, 0, int(self._center))
+    def reset_position(self):
+        self.rotate(90)
 
 if __name__ == "__main__":
     servo = ServoController()
+    servo.reset_position()
+    # time.sleep(1)
+    # servo.rotate(45)
+    # time.sleep(1)
+    # servo.rotate(-45)
+    # time.sleep(1)
+    # servo.reset_position()
