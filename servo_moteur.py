@@ -19,7 +19,7 @@ class ServoController:
         self.servo.write(0, 0, int(pulse))
 
     def reset_position(self):
-        self.rotate(45)
+        self.rotate(20)
 
 if __name__ == "__main__":
     servo = ServoController()
