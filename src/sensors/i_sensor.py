@@ -18,3 +18,8 @@ class i_sensor(ABC):
     def display_data(self):
         """Displays data after treating"""
         pass
+
+    @abstractmethod
+    def _save_log(self, data, path):
+        """Save the read data to a specified log file, depending of the sensor (data or errors)"""
+        pass

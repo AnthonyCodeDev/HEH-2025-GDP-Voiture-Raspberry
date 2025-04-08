@@ -1,5 +1,7 @@
 import time
 import pigpio
+from datetime import datetime
+import os
 
 from .i_sensor import i_sensor
 
@@ -33,18 +35,36 @@ class VoltageSensor(i_sensor):
         self._max_current = max_current
 
         if bus_voltage_range not in (16, 32):
+            self._save_log("Unsupported bus voltage range", '/logs/voltage_log_errors.log')
             raise ValueError("Unsupported bus voltage range. Choose either 16 or 32 V")
         self._bus_voltage_range = bus_voltage_range
         
         #initialize the pigpio instance and open the I2C handle
         self._pi = pigpio.pi()
         if not self._pi.connected:
+            self._save_log("Could not connect to pigpio daemon", '/logs/voltage_log_errors.log')
             raise IOError("Could not connect to pigpio daemon")
 
         #address by default is 0x40 for i2c connection
         self._handle = self._pi.i2c_open(bus, address)
 
         self._calibrate_sensor()
+    
+    def _save_log(self, data, path):
+
+        if not os.path.isabs(path):
+            self._save_log("path must be an absolute path from root", '/logs/infrared_log_errors.log')
+            raise ValueError("file_path must be an absolute path from root")
+        
+        try:
+            #ISO 8601 format
+            timestamp = datetime.now().isoformat()
+
+            with open(path, 'a') as log_file:
+                log_file.write(f"{timestamp} - {data}\n")
+        except Exception as e:
+            self._save_log(e, '/logs/voltage_log_errors.log')
+            raise Exception(f"Error logging sensor data: {e}")
 
 
     def _calibrate_sensor(self):
@@ -61,6 +81,7 @@ class VoltageSensor(i_sensor):
         # Write the calibration value to the calibration register.
         status = self._pi.i2c_write_word_data(self._handle, CALIBRATION_REG, calibration_value)
         if status < 0:
+            self._save_log("Failed to write calibration register", '/logs/voltage_log_errors.log')
             raise IOError("Failed to write calibration register")
         
         # configuration for 16V
@@ -72,6 +93,7 @@ class VoltageSensor(i_sensor):
              
         status = self._pi.i2c_write_word_data(self._handle, CONFIG_REG, configuration)
         if status < 0:
+            self._save_log("Failed to write configuration register", '/logs/voltage_log_errors.log')
             raise IOError("Failed to write configuration register")
         
     def _read_bytes(self, register):
@@ -82,6 +104,7 @@ class VoltageSensor(i_sensor):
 
         count, data = self._pi.i2c_read_word_data(self._handle, register)
         if count != 2:
+            self._save_log(f"Failed to read register 0x{register:02X}", '/logs/voltage_log_errors.log')
             raise IOError(f"Failed to read register 0x{register:02X}")
         
         #bit swap in 8 to ensure the usage of only the lower 8 bits from the shifted value
@@ -112,6 +135,7 @@ class VoltageSensor(i_sensor):
         """Display current data"""
 
         data = self.read_data()
+        self._save_log(data, '/logs/voltage_log.log')
         print(f"INA219 Sensor ({self._name}): Bus Voltage = {data['bus_voltage']:.2f} V, "
               f"Current = {data['current']:.2f} mA")
 
@@ -126,4 +150,5 @@ class VoltageSensor(i_sensor):
             self._pi.i2c_close(self._handle)
             self._pi.stop()
         except Exception as e:
+            self._save_log("Failed to close INA219 sensor properly", '/logs/voltage_log_errors.log')
             raise IOError("Failed to close INA219 sensor properly: " + str(e))

@@ -3,6 +3,8 @@
 #Part of nano-computers project
 
 import pigpio
+from datetime import datetime
+import os
 
 from .i_sensor import i_sensor
 
@@ -37,10 +39,27 @@ class rgb_sensor(i_sensor):
         #pigpio daemon
         self._pi = pigpio.pi()
         if not self._pi.connected:
+            self._save_log("Could not connect to pigpio daemon", '/logs/rgb_log_errors.log')
             raise IOError("Could not connect to pigpio daemon")
         # Open an I2C connection on the specified bus and address
         self.handle = self._pi.i2c_open(bus, address)
         self._initialize_sensor()
+
+    def _save_log(self, data, path):
+
+        if not os.path.isabs(path):
+            self._save_log("path must be an absolute path from root", '/logs/infrared_log_errors.log')
+            raise ValueError("file_path must be an absolute path from root")
+        
+        try:
+            #ISO 8601 format
+            timestamp = datetime.now().isoformat()
+
+            with open(path, 'a') as log_file:
+                log_file.write(f"{timestamp} - {data}\n")
+        except Exception as e:
+            self._save_log(e, '/logs/rgb_log_errors.log')
+            raise Exception(f"Error logging sensor data: {e}")
         
 
     def _initialize_sensor(self):
@@ -57,14 +76,18 @@ class rgb_sensor(i_sensor):
         try:
             ret = self._pi.i2c_write_byte_data(self._handle, COMMAND_BIT | ENABLE, 0x03)
             if ret < 0:
+                self._save_log("Failed to write to ENABLE register", '/logs/rgb_log_errors.log')
                 raise IOError("Failed to write to ENABLE register")
             ret = self._pi.i2c_write_byte_data(self._handle, COMMAND_BIT | ATIME, 0xD5)
             if ret < 0:
+                self._save_log("Failed to write to ATIME register", '/logs/rgb_log_errors.log')
                 raise IOError("Failed to write to ATIME register")
             ret = self._pi.i2c_write_byte_data(self._handle, COMMAND_BIT | CONTROL, 0x01)
             if ret < 0:
+                self._save_log("Failed to write to CONTROL register", '/logs/rgb_log_errors.log')
                 raise IOError("Failed to write to CONTROL register")
         except Exception as e:
+            self._save_log(e, '/logs/rgb_log_errors.log')
             raise IOError(f"Error initializing RGB sensor: {e}")
         
     def read_byte(self, register: int):
@@ -76,9 +99,11 @@ class rgb_sensor(i_sensor):
         try:
             count, data = self._pi.i2c_read_byte_data(self._handle, COMMAND_BIT | register)
             if count != 1:
+                self._save_log(f"Failed to read byte from register 0x{register:02X}", '/logs/rgb_log_errors.log')
                 raise IOError(f"Failed to read byte from register 0x{register:02X}")
             return data
         except Exception as e:
+            self._save_log(e, '/logs/rgb_log_errors.log')
             raise IOError(f"Error reading byte from register 0x{register:02X}: {e}")
 
     def _read_word(self, register):
@@ -111,6 +136,7 @@ class rgb_sensor(i_sensor):
                 self._color = "NOT_DEFINED"
             return self._color
         except Exception as e:
+            self._save_log(e, '/logs/rgb_log_errors.log')
             raise IOError(f"Error reading RGB sensor data: {e}")
 
 
@@ -122,8 +148,10 @@ class rgb_sensor(i_sensor):
 
         try:
             color = self.read_data()
+            self._save_log(color, '/logs/rgb_log.log')
             print(f"Detected Color: {color}")
         except Exception as e:
+            self._save_log(e, '/logs/rgb_log_errors.log')
             print(f"Error displaying RGB sensor data: {e}")
 
     def close(self):
@@ -136,4 +164,5 @@ class rgb_sensor(i_sensor):
             self._pi.i2c_close(self._handle)
             self._pi.stop()
         except Exception as e:
+            self._save_log(e, '/logs/rgb_log_errors.log')
             raise IOError(f"Error closing RGB sensor: {e}")
