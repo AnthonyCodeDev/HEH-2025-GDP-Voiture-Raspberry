@@ -3,69 +3,135 @@ import RPi.GPIO as GPIO
 import time
 import PCA9685 as PCA
 
-class DCMotorController:
+class MotorController:
+    """
+    Contrôleur de moteurs DC.
+
+    Auteur : Anthony Vergeylen
+    Date   : 08-04-2025
+    """
     def __init__(self):
-        self.__motor0_pin_A = 17
-        self.__motor0_pin_B = 18
-        self.__motor1_pin_A = 27
-        self.__motor1_pin_B = 22
-        self.__motor0_enable = 4
-        self.__motor1_enable = 5
-        self.__pins = [
-            self.__motor0_pin_A,
-            self.__motor0_pin_B,
-            self.__motor1_pin_A,
-            self.__motor1_pin_B
+        """
+        Initialise le contrôleur des moteurs.
+        Configure les broches GPIO et l'objet PWM.
+        
+        Auteur : Anthony Vergeylen
+        Date   : 08-04-2025
+        """
+        self.__moteur0_pin_a = 17
+        self.__moteur0_pin_b = 18
+        self.__moteur1_pin_a = 27
+        self.__moteur1_pin_b = 22
+        self.__moteur0_enable_pin = 4
+        self.__moteur1_enable_pin = 5
+
+        self.__gpio_pins = [
+            self.__moteur0_pin_a,
+            self.__moteur0_pin_b,
+            self.__moteur1_pin_a,
+            self.__moteur1_pin_b
         ]
-        self.__pwm = PCA.PWM()
-        self.__pwm.frequency = 60
+        
+        self.__pwm_controller = PCA.PWM()
+        self.__pwm_controller.frequency = 60
+        
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
-        for pin in self.__pins:
+        for pin in self.__gpio_pins:
             GPIO.setup(pin, GPIO.OUT)
 
-    def __set_motor_output(self, pin_a, pin_b, pwm_value):
+    def __apply_motor_state(self, pin_a, pin_b, pwm_value):
+        """
+        Applique l'état des sorties pour un moteur.
+
+        :param pin_a: Broche de commande A.
+        :param pin_b: Broche de commande B.
+        :param pwm_value: Valeur PWM ajustée pour la vitesse.
+        
+        Auteur : Anthony Vergeylen
+        Date   : 08-04-2025
+        """
         GPIO.output(pin_a, GPIO.HIGH if pwm_value > 0 else GPIO.LOW)
         GPIO.output(pin_b, GPIO.LOW if pwm_value > 0 else GPIO.HIGH)
-        channel = self.__motor0_enable if pin_a == self.__motor0_pin_A else self.__motor1_enable
-        self.__pwm.write(channel, 0, int(abs(pwm_value)))
+        channel = self.__moteur0_enable_pin if pin_a == self.__moteur0_pin_a else self.__moteur1_enable_pin
+        self.__pwm_controller.write(channel, 0, int(abs(pwm_value)))
 
-    def move_forward(self, speed=100):
+    def forward(self, speed=100):
+        """
+        Fait avancer les moteurs à la vitesse spécifiée.
+
+        :param speed: Vitesse de 0 à 100.
+        
+        Auteur : Anthony Vergeylen
+        Date   : 08-04-2025
+        """
         pwm_val = self.__scale_speed(speed)
-        self.__set_motor_output(self.__motor0_pin_A, self.__motor0_pin_B, pwm_val)
-        self.__set_motor_output(self.__motor1_pin_A, self.__motor1_pin_B, pwm_val)
+        self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, pwm_val)
+        self.__apply_motor_state(self.__moteur1_pin_a, self.__moteur1_pin_b, pwm_val)
 
-    def move_backward(self, speed=-100):
+    def backward(self, speed=-100):
+        """
+        Fait reculer les moteurs à la vitesse spécifiée.
+
+        :param speed: Vitesse négative entre 0 et -100.
+        
+        Auteur : Anthony Vergeylen
+        Date   : 08-04-2025
+        """
         if speed < 0:
             pwm_val = self.__scale_speed(speed)
-            self.__set_motor_output(self.__motor0_pin_A, self.__motor0_pin_B, pwm_val)
-            self.__set_motor_output(self.__motor1_pin_A, self.__motor1_pin_B, pwm_val)
+            self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, pwm_val)
+            self.__apply_motor_state(self.__moteur1_pin_a, self.__moteur1_pin_b, pwm_val)
         else:
-            raise ValueError("Speed must be negative for backward movement")
+            raise ValueError("La vitesse doit être négative pour le mouvement arrière")
 
     def stop(self):
-        self.__set_motor_output(self.__motor0_pin_A, self.__motor0_pin_B, 0)
-        self.__set_motor_output(self.__motor1_pin_A, self.__motor1_pin_B, 0)
+        """
+        Arrête les moteurs.
+        
+        Auteur : Anthony Vergeylen
+        Date   : 08-04-2025
+        """
+        self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, 0)
+        self.__apply_motor_state(self.__moteur1_pin_a, self.__moteur1_pin_b, 0)
 
     def __scale_speed(self, speed):
+        """
+        Convertit une vitesse de 0 à 100 en une valeur PWM comprise entre 0 et 4095.
+
+        :param speed: Vitesse (positive pour avancer, négative pour reculer).
+        :return: Valeur PWM correspondante.
+        
+        Auteur : Anthony Vergeylen
+        Date   : 08-04-2025
+        """
         return speed * 4095 / 100
 
 def main():
+    """
+    Fonction principale pour tester le contrôleur de moteurs.
+    Fait avancer pendant 2 secondes, reculer pendant 2 secondes, puis arrête.
+    
+    Auteur : Anthony Vergeylen
+    Date   : 08-04-2025
+    """
     try:
-        motor = DCMotorController()
-        print("Moving forward...")
-        motor.move_forward(100)
+        motor_ctrl = MotorController()
+        print("Mouvement avant...")
+        motor_ctrl.forward(100)
         time.sleep(2)
-        print("Moving backward...")
-        motor.move_backward(-100)
+        
+        print("Mouvement arrière...")
+        motor_ctrl.backward(-100)
         time.sleep(2)
-        print("Stopping...")
-        motor.stop()
-    except Exception as e:
-        print("Error:", e)
+        
+        print("Arrêt...")
+        motor_ctrl.stop()
+    except Exception as err:
+        print("Erreur :", err)
     finally:
         GPIO.cleanup()
-        print("GPIO cleaned up.")
+        print("Nettoyage des GPIO terminé.")
 
-if __name__ == "__main__":
+if __name__ == "__moteurain__":
     main()
