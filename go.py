@@ -7,12 +7,14 @@ sont surveillés pour détecter les obstacles :
     - Le capteur sur trig 26 / echo 19 : si la distance est inférieure à 15 cm, tourner à gauche.
     - Le capteur sur trig 11 / echo 9   : si la distance est inférieure à 15 cm, tourner à droite.
 Après chaque action d'évitement (durée de 3 secondes), les roues sont remises à 45° (point mort).
+Lors de l'appui sur Ctrl+C, le script arrête proprement les moteurs et désactive le servo pour ne pas forcer le matériel.
 """
 
 import time
 from gpiozero import DistanceSensor
 from moteur import MotorController
 from servo_controller import ServoController
+import RPi.GPIO as GPIO  # Pour le nettoyage des GPIO
 
 # Seuil de distance en centimètres pour déclencher l'évitement d'obstacle
 OBSTACLE_THRESHOLD_CM = 15
@@ -54,7 +56,6 @@ def main():
                 print(f"Obstacle détecté par le capteur gauche ({round(distance_gauche, 2)} cm). Action : virage à gauche.")
                 # Tourner à gauche
                 servo_ctrl.rotate(ANGLE_VIRAGE_GAUCHE)
-                # On attend pendant la durée du virage
                 time.sleep(DUREE_VIRAGE)
                 # Remise des roues en position centrale (45°)
                 servo_ctrl.setToDegree(ANGLE_CENTRAL)
@@ -70,15 +71,20 @@ def main():
                 servo_ctrl.setToDegree(ANGLE_CENTRAL)
                 print("Virage à droite terminé, reprise de la trajectoire.")
             
-            # Petite pause pour éviter de surcharger la boucle de contrôle
+            # Petite pause pour limiter la fréquence de contrôle
             time.sleep(0.1)
     
     except KeyboardInterrupt:
-        print("Arrêt du programme par l'utilisateur.")
+        print("Ctrl+C détecté : arrêt en cours...")
     
     finally:
+        # Mise à 0 des moteurs pour éviter de forcer le matériel
         motor_ctrl.stop()
-        print("La voiture est arrêtée.")
+        # Désactivation de la PWM pour libérer le servo
+        servo_ctrl.disable_pwm()
+        # Nettoyage des GPIO
+        GPIO.cleanup()
+        print("Nettoyage des GPIO terminé. La voiture est arrêtée.")
 
 if __name__ == "__main__":
     main()
