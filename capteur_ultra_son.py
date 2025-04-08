@@ -1,38 +1,14 @@
 from gpiozero import DistanceSensor
-from signal import pause
+from gpiozero.pins.pigpio import PiGPIOFactory
 import time
-import sys
 
-# Définir les broches (attention : gpiozero attend TRIG puis ECHO dans l'ordre inverse de RPi.GPIO)
-TRIG = 6  # Orange
-ECHO = 5   # Jaune (modifié selon ta photo — GPIO 21 n'est pas correct)
+# Capteur CD2 - GPIO 6 (TRIG), GPIO 5 (ECHO)
+factory = PiGPIOFactory()
+sensor_cd2 = DistanceSensor(echo=5, trigger=6, pin_factory=factory)
 
-def auto_check(sensor):
-    print("📡 Vérification du capteur HC-SR04...")
+while True:
     try:
-        distance_cm = sensor.distance * 100  # La propriété `.distance` donne des mètres
-        if distance_cm > 400 or distance_cm <= 2:
-            print("[ERREUR] Distance hors plage ou capteur non détecté.")
-            sys.exit(1)
-        else:
-            print(f"[OK] Capteur actif. Distance mesurée : {round(distance_cm, 2)} cm")
+        print(f"[CD2] Distance : {sensor_cd2.distance * 100:.2f} cm")
+        time.sleep(1)
     except Exception as e:
-        print(f"[ERREUR] Capteur introuvable ou mal branché : {e}")
-        sys.exit(1)
-
-def boucle_principale(sensor):
-    try:
-        while True:
-            distance_cm = sensor.distance * 100
-            print(f"Distance : {round(distance_cm, 2)} cm")
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("⛔ Programme arrêté par l'utilisateur")
-
-# Lancement
-if __name__ == "__main__":
-    # Création du capteur (gpiozero attend TRIG, puis ECHO)
-    capteur = DistanceSensor(echo=ECHO, trigger=TRIG, max_distance=4, threshold_distance=0.1)
-
-    auto_check(capteur)
-    boucle_principale(capteur)
+        print("❌ CD2 erreur :", e)
