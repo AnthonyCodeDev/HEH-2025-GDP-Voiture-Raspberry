@@ -76,7 +76,7 @@ def main():
     servo = ServoController()
     
     print("Rotation des roues à +50°...")
-    servo.setToDegree(0)
+    servo.setToDegree(50)
     time.sleep(5)
     
     servo.disable_pwm()
