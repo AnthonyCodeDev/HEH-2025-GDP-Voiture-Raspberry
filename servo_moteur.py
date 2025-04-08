@@ -14,6 +14,7 @@ class ServoController:
         time.sleep(0.1)
         # Positionne le servo en position neutre
         self.reset()
+        print("Servo initialisé. Position neutre définie.")
 
     def disable_output(self):
         """
