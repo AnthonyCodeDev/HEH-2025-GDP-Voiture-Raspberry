@@ -41,9 +41,15 @@ def main():
     Date   : 08-04-2025
     """
     servo = ServoController()
-    servo.rotate(5)
-    time.sleep(1)  # Attendre que le servo atteigne la position
+    servo.rotate(0)
     servo.disable_pwm()
+    time.sleep(4)
+    servo.rotate(10)
+    servo.disable_pwm()
+    time.sleep(4)
+    servo.rotate(-10)
+    servo.disable_pwm()
+    
 
 if __name__ == "__main__":
     main()
