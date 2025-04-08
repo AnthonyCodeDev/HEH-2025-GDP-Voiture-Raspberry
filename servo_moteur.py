@@ -46,12 +46,12 @@ def main():
     servo = ServoController()
     
     # Tourner à droite (angle positif)
-    servo.rotate(30)
+    servo.rotate(90)
     servo.disable_pwm()
     time.sleep(3)
     
     # Tourner à gauche (angle négatif)
-    servo.rotate(-30)
+    servo.rotate(-90)
     servo.disable_pwm()
     time.sleep(3)
     
