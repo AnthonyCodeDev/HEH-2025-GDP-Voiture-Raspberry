@@ -5,7 +5,7 @@ from moteur import MotorController
 from servo_controller import ServoController
 
 class TourEn8:
-    def __init__(self, speed=35, cycle_time=12, dt=0.03, cycles=3, amplitude=90):
+    def __init__(self, speed=35, cycle_time=12, dt=0.03, cycles=3, amplitude=20):
         self.motor = MotorController()
         self.servo = ServoController()
         self.speed = speed
@@ -24,9 +24,8 @@ class TourEn8:
                     self.servo.setToDegree(angle)
                     self.motor.forward(self.speed)
                     time.sleep(self.dt)
-                self.motor.stop()
-                self.servo.setToDegree(45)
-                time.sleep(1)
+            self.motor.stop()
+            self.servo.setToDegree(45)
         finally:
             self.motor.stop()
             self.servo.disable_pwm()
