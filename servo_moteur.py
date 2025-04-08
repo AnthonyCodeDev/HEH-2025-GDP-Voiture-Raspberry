@@ -68,7 +68,7 @@ def main():
     time.sleep(4)
     
     # Rotation vers la gauche à -50°
-    servo.rotate(-50)
+    servo.rotate(-100)
     servo.disable_pwm()
     time.sleep(4)
     
