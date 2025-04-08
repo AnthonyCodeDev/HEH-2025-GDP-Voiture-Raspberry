@@ -66,12 +66,12 @@ def main():
     servo = ServoController()
     
     # Tourner vers la droite à +10° relatif
-    servo.rotate(10)
+    servo.rotate(30)
     servo.disable_pwm()
     time.sleep(4)
     
     # Tourner vers la gauche à -10° relatif (donc positionner à -10° et non à revenir au 0°)
-    servo.rotate(-10)
+    servo.rotate(-30)
     servo.disable_pwm()
     time.sleep(4)
     
