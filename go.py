@@ -2,15 +2,16 @@
 """
 go.py
 ------
-Ce script commande la voiture pour qu'elle avance indéfiniment et évite les obstacles grâce à trois capteurs ultrason :
+Ce script commande la voiture pour qu'elle avance en continu et évite les obstacles grâce à trois capteurs ultrason.
 
-    - Capteur gauche (trig 26 / echo 19) : Si la distance est inférieure à 15 cm, tourner à gauche.
-    - Capteur droit (trig 11 / echo 9)    : Si la distance est inférieure à 15 cm, tourner à droite.
-    - Capteur avant (trig 6 / echo 5)     : Si la distance est inférieure à 30 cm (15 cm + marge), 
-      arrêter, reculer, puis choisir la direction offrant le plus de clearance pour repartir.
+Utilisation des capteurs :
+    - Capteur gauche (trig 26 / echo 19) : Si la distance est inférieure à 15 cm, considérer obstacle latéral gauche.
+    - Capteur droit (trig 11 / echo 9)    : Si la distance est inférieure à 15 cm, considérer obstacle latéral droit.
+    - Capteur avant (trig 6 / echo 5)      : Si la distance est inférieure à 30 cm, alors déclencher une manœuvre
+      d'évitement, et si la distance descend en dessous de 10 cm, prendre une action d'urgence (arrêt immédiat et marche arrière prolongée).
 
-Après chaque manœuvre d'évitement, les roues sont remises au point mort (45°).  
-Lors d'une interruption clavier (Ctrl+C), le programme arrête proprement les moteurs, désactive le servo et effectue le nettoyage des GPIO.
+Après chaque manœuvre, les roues sont ramenées à 45° (point mort).  
+En cas d'interruption clavier (Ctrl+C), les moteurs s'arrêtent, le servo est désactivé et les GPIO sont nettoyés.
 """
 
 import time
@@ -22,29 +23,35 @@ import RPi.GPIO as GPIO
 
 class CarController:
     """
-    Contrôleur principal de la voiture autonome.
-    
-    Cette classe gère les capteurs ultrason, le contrôle des moteurs et le pilotage du servo afin d'assurer
-    une conduite en avant en évitant les obstacles.
+    Contrôleur principal pour la voiture autonome.
+
+    Cette classe lit et filtre les mesures des capteurs ultrason,
+    et commande les moteurs et le servo pour assurer une navigation fluide
+    en évitant les obstacles, que ce soit un mur frontal ou des obstacles latéraux.
     """
 
     def __init__(self):
         """
-        Initialise les capteurs, le contrôleur de moteurs et le contrôleur du servo ainsi que les paramètres.
+        Initialise les capteurs, contrôleurs et paramètres.
         """
-        # Seuils de détection
-        self.obstacle_threshold = 15          # Seuil latéral (en cm)
-        self.front_threshold = self.obstacle_threshold + 15  # Seuil frontal (marge supplémentaire)
+        # Paramètres de détection (en cm)
+        self.side_threshold = 15         # Seuil latéral : obstacle sur les côtés
+        self.front_threshold = 30        # Seuil frontal : avertissement anticipé
+        self.emergency_threshold = 10    # Seuil frontal d'urgence : action immédiate
 
-        # Angles de virage (en degrés)
-        self.angle_virage_gauche = -40          # Virage à gauche (valeur négative)
-        self.angle_virage_droite = 40           # Virage à droite (valeur positive)
-        self.angle_central = 45                 # Position neutre / point mort
+        # Paramètres de virage et positionnement
+        self.angle_virage_gauche = -40   # Virage à gauche (valeur négative)
+        self.angle_virage_droite = 40    # Virage à droite (valeur positive)
+        self.angle_central = 45          # Point mort du servo (position neutre)
 
         # Durées (en secondes)
-        self.duree_virage = 3                 # Durée d'exécution d'un virage
-        self.duree_marche_arriere = 1         # Durée de la marche arrière lors d'un obstacle frontal
-        self.reverse_pause = 0.5              # Pause après l'arrêt avant de reculer
+        self.duree_virage = 3            # Durée d'un virage
+        self.duree_marche_arriere = 1    # Durée de marche arrière lors d'un obstacle frontal
+        self.reverse_pause = 0.5         # Pause avant de reculer
+
+        # Paramètres du filtrage des capteurs
+        self.sensor_sample_count = 5     # Nombre d'échantillons pour obtenir une lecture moyenne
+        self.sensor_sample_delay = 0.01  # Délai entre les lectures (en secondes)
 
         # Initialisation des capteurs ultrason
         self.sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=4)
@@ -55,12 +62,22 @@ class CarController:
         self.motor_ctrl = MotorController()
         self.servo_ctrl = ServoController()
 
+    def get_filtered_distance(self, sensor):
+        """
+        Retourne la distance moyenne mesurée par un capteur après filtrage.
+
+        :param sensor: Instance de DistanceSensor.
+        :return: Distance moyenne en cm.
+        """
+        total = 0.0
+        for _ in range(self.sensor_sample_count):
+            total += sensor.distance  # gpiozero retourne la distance en mètres
+            time.sleep(self.sensor_sample_delay)
+        return (total / self.sensor_sample_count) * 100
+
     def run(self):
         """
         Lance la boucle principale de contrôle de la voiture.
-        
-        La voiture avance en ligne droite et surveille en permanence les obstacles.  
-        En fonction des mesures des capteurs, elle déclenche les manœuvres d'évitement appropriées.
         """
         print("Démarrage : la voiture avance en ligne droite...")
         self.motor_ctrl.forward(100)
@@ -68,64 +85,70 @@ class CarController:
 
         try:
             while True:
-                # Lecture des distances (conversion en cm)
-                distance_front = self.sensor_front.distance * 100
-                distance_left = self.sensor_left.distance * 100
-                distance_right = self.sensor_right.distance * 100
+                # Lire les distances filtrées
+                distance_front = self.get_filtered_distance(self.sensor_front)
+                distance_left  = self.get_filtered_distance(self.sensor_left)
+                distance_right = self.get_filtered_distance(self.sensor_right)
 
-                # Affichage de la distance frontale en mode debug
-                if distance_front > 1:
-                    print(f"Distance avant : {round(distance_front, 2)} cm")
+                # Affichage pour le debug
+                print(f"Distances -> Avant: {round(distance_front,2)} cm, Gauche: {round(distance_left,2)} cm, Droite: {round(distance_right,2)} cm")
 
-                # Détection d'obstacle par le capteur frontal (prioritaire)
-                if distance_front < self.front_threshold:
+                # Si le capteur frontal détecte un obstacle en dessous du seuil d'urgence
+                if distance_front < self.emergency_threshold:
+                    print(f"URGENCE! Obstacle frontal très proche ({round(distance_front,2)} cm). Arrêt immédiat.")
+                    self.motor_ctrl.stop()
+                    time.sleep(0.5)
+                    self.motor_ctrl.backward(-100)
+                    time.sleep(self.duree_marche_arriere * 1.5)
+                    self.motor_ctrl.forward(100)
+                    self.servo_ctrl.setToDegree(self.angle_central)
+                
+                # Si le capteur frontal détecte un obstacle (mais non en urgence)
+                elif distance_front < self.front_threshold:
                     self.handle_front_obstacle()
-                # Détection simultanée sur les deux côtés
-                elif distance_left < self.obstacle_threshold and distance_right < self.obstacle_threshold:
+                # Obstacles détectés simultanément sur les deux côtés
+                elif distance_left < self.side_threshold and distance_right < self.side_threshold:
                     self.handle_double_side_obstacle()
-                # Détection sur le côté gauche uniquement
-                elif distance_left < self.obstacle_threshold:
+                # Obstacle détecté sur le côté gauche
+                elif distance_left < self.side_threshold:
                     self.handle_left_obstacle()
-                # Détection sur le côté droit uniquement
-                elif distance_right < self.obstacle_threshold:
+                # Obstacle détecté sur le côté droit
+                elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
 
                 time.sleep(0.1)
-
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
-
         finally:
             self.cleanup()
 
     def handle_front_obstacle(self):
         """
-        Gère la manœuvre d'évitement en cas d'obstacle détecté par le capteur frontal.
+        Gère l'évitement d'un obstacle frontal.
         
-        La voiture s'arrête immédiatement, effectue une courte marche arrière,
-        puis choisit la direction (gauche ou droite) offrant le plus de clearance et entame le virage.
+        La voiture s'arrête, effectue une marche arrière, puis choisit la direction offrant le plus de clearance.
         """
-        distance_left = self.sensor_left.distance * 100
-        distance_right = self.sensor_right.distance * 100
+        # Récupérer les distances latérales
+        distance_left  = self.get_filtered_distance(self.sensor_left)
+        distance_right = self.get_filtered_distance(self.sensor_right)
 
-        print(f"Obstacle frontal détecté ({round(self.sensor_front.distance * 100, 2)} cm). Arrêt immédiat.")
+        print(f"Obstacle frontal détecté ({round(self.get_filtered_distance(self.sensor_front),2)} cm). Arrêt immédiat.")
         self.motor_ctrl.stop()
-        time.sleep(0.5)
+        time.sleep(self.reverse_pause)
 
-        print("Marche arrière suite à l'obstacle frontal...")
+        print("Marche arrière pour dégager l'obstacle frontal...")
         self.motor_ctrl.backward(-100)
         time.sleep(self.duree_marche_arriere)
         self.motor_ctrl.forward(100)
 
-        # Relecture des distances sur les côtés
-        distance_left = self.sensor_left.distance * 100
-        distance_right = self.sensor_right.distance * 100
-
+        # Relecture des distances pour choisir le virage
+        distance_left  = self.get_filtered_distance(self.sensor_left)
+        distance_right = self.get_filtered_distance(self.sensor_right)
         if distance_left > distance_right:
-            print(f"Plus de clearance à gauche (gauche : {round(distance_left, 2)} cm, droite : {round(distance_right, 2)} cm). Virage à gauche.")
+            print(f"Plus de clearance à gauche (G: {round(distance_left,2)} cm, D: {round(distance_right,2)} cm). Virage à gauche.")
             self.servo_ctrl.rotate(self.angle_virage_gauche)
         else:
-            print(f"Plus de clearance à droite (gauche : {round(distance_left, 2)} cm, droite : {round(distance_right, 2)} cm). Virage à droite.")
+            print(f"Plus de clearance à droite (G: {round(distance_left,2)} cm, D: {round(distance_right,2)} cm). Virage à droite.")
             self.servo_ctrl.rotate(self.angle_virage_droite)
 
         time.sleep(self.duree_virage)
@@ -133,36 +156,34 @@ class CarController:
 
     def handle_double_side_obstacle(self):
         """
-        Gère la situation où les deux capteurs latéraux détectent un obstacle.
+        Gère la situation où des obstacles sont détectés simultanément sur les deux côtés.
         
-        La voiture recule brièvement, attend qu'au moins un côté soit dégagé,
-        puis effectue un virage dans la direction disposant du plus d'espace.
+        La voiture recule brièvement, attend qu'au moins un côté se libère, puis effectue le virage le plus approprié.
         """
-        print(f"Obstacle double détecté (gauche : {round(self.sensor_left.distance * 100, 2)} cm, droite : {round(self.sensor_right.distance * 100, 2)} cm). Marche arrière...")
+        print(f"Obstacle double détecté (Gauche: {round(self.get_filtered_distance(self.sensor_left),2)} cm, Droite: {round(self.get_filtered_distance(self.sensor_right),2)} cm). Marche arrière...")
         self.motor_ctrl.backward(-100)
         time.sleep(self.duree_marche_arriere)
         self.motor_ctrl.forward(100)
 
-        # Attente active jusqu'à ce qu'au moins un côté se libère
-        while (self.sensor_left.distance * 100 < self.obstacle_threshold and
-               self.sensor_right.distance * 100 < self.obstacle_threshold):
+        # Attendre que l'un des côtés soit dégagé pour éviter le blocage
+        while (self.get_filtered_distance(self.sensor_left) < self.side_threshold and
+               self.get_filtered_distance(self.sensor_right) < self.side_threshold):
             time.sleep(0.1)
 
-        distance_left = self.sensor_left.distance * 100
-        distance_right = self.sensor_right.distance * 100
-
-        if distance_left >= self.obstacle_threshold and distance_right < self.obstacle_threshold:
-            print(f"Côté gauche dégagé (gauche : {round(distance_left, 2)} cm). Virage à gauche.")
+        distance_left  = self.get_filtered_distance(self.sensor_left)
+        distance_right = self.get_filtered_distance(self.sensor_right)
+        if distance_left >= self.side_threshold and distance_right < self.side_threshold:
+            print(f"Côté gauche dégagé (G: {round(distance_left,2)} cm). Virage à gauche.")
             self.servo_ctrl.rotate(self.angle_virage_gauche)
-        elif distance_right >= self.obstacle_threshold and distance_left < self.obstacle_threshold:
-            print(f"Côté droit dégagé (droite : {round(distance_right, 2)} cm). Virage à droite.")
+        elif distance_right >= self.side_threshold and distance_left < self.side_threshold:
+            print(f"Côté droit dégagé (D: {round(distance_right,2)} cm). Virage à droite.")
             self.servo_ctrl.rotate(self.angle_virage_droite)
         else:
             if distance_left > distance_right:
-                print(f"Les deux côtés dégagés (gauche : {round(distance_left, 2)} cm, droite : {round(distance_right, 2)} cm). Virage à gauche (plus de clearance).")
+                print(f"Les deux côtés dégagés (G: {round(distance_left,2)} cm, D: {round(distance_right,2)} cm). Virage à gauche.")
                 self.servo_ctrl.rotate(self.angle_virage_gauche)
             else:
-                print(f"Les deux côtés dégagés (gauche : {round(distance_left, 2)} cm, droite : {round(distance_right, 2)} cm). Virage à droite (plus de clearance).")
+                print(f"Les deux côtés dégagés (G: {round(distance_left,2)} cm, D: {round(distance_right,2)} cm). Virage à droite.")
                 self.servo_ctrl.rotate(self.angle_virage_droite)
 
         time.sleep(self.duree_virage)
@@ -170,30 +191,25 @@ class CarController:
 
     def handle_left_obstacle(self):
         """
-        Gère la détection d'un obstacle uniquement sur le côté gauche.
-        
-        La voiture effectue un virage à gauche.
+        Gère l'évitement d'un obstacle détecté sur le côté gauche.
         """
-        print(f"Obstacle détecté par le capteur gauche ({round(self.sensor_left.distance * 100, 2)} cm). Virage à gauche.")
+        print(f"Obstacle détecté sur le côté gauche ({round(self.get_filtered_distance(self.sensor_left),2)} cm). Virage à gauche.")
         self.servo_ctrl.rotate(self.angle_virage_gauche)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
 
     def handle_right_obstacle(self):
         """
-        Gère la détection d'un obstacle uniquement sur le côté droit.
-        
-        La voiture effectue un virage à droite.
+        Gère l'évitement d'un obstacle détecté sur le côté droit.
         """
-        print(f"Obstacle détecté par le capteur droit ({round(self.sensor_right.distance * 100, 2)} cm). Virage à droite.")
+        print(f"Obstacle détecté sur le côté droit ({round(self.get_filtered_distance(self.sensor_right),2)} cm). Virage à droite.")
         self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
 
     def cleanup(self):
         """
-        Effectue le nettoyage nécessaire : arrêt des moteurs, désactivation du PWM du servo,
-        et nettoyage des broches GPIO.
+        Arrête les moteurs, désactive le PWM du servo et nettoie les GPIO.
         """
         self.motor_ctrl.stop()
         self.servo_ctrl.disable_pwm()
