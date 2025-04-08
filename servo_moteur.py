@@ -77,15 +77,15 @@ def main():
     
     print("Rotation des roues à +50°...")
     servo.setToDegree(90)
-    time.sleep(5)
+    time.sleep(1)
 
     print("Rotation des roues à +50°...")
     servo.setToDegree(45)
-    time.sleep(5)
+    time.sleep(1)
 
     print("Rotation des roues à +50°...")
     servo.setToDegree(0)
-    time.sleep(5)
+    time.sleep(1)
 
 
     
