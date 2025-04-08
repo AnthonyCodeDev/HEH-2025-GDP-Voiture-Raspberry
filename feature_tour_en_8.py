@@ -2,7 +2,7 @@
 import time, math
 import RPi.GPIO as GPIO
 from moteur import MotorController
-from servo_controlleur import ServoController
+from servo_controller import ServoController
 
 class TourEn8:
     def __init__(self, speed=80, total_time=12, dt=0.05):
