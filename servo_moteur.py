@@ -35,6 +35,20 @@ class ServoController:
         self.pwm.write(0, 0, int(pulse))
         print(f"rotate({angle}) -> PWM: {int(pulse)}")
 
+    # def settodegree (pas juste rotate, mais mettre à une position précise)
+    def setToDegree(self, angle):
+        """
+        Positionne les roues à un angle absolu entre 0° et 180°.
+        Un angle de 0° correspond à la position centrée (0° relatif).
+        
+        :param angle: Angle absolu désiré (entre 0 et 180).
+        """
+        # Contraindre l'angle dans [0, 180]
+        angle = max(0, min(180, angle))
+        pulse = self.center_val + ((angle / 180.0) * (self.max_val - self.min_val))
+        self.pwm.write(0, 0, int(pulse))
+        print(f"setToDegree({angle}) -> PWM: {int(pulse)}")
+
     def resetRoue(self):
         """
         Remet les roues en position droite (0° relatif).
@@ -62,7 +76,7 @@ def main():
     servo = ServoController()
     
     print("Rotation des roues à +50°...")
-    servo.rotate(0)
+    servo.setToDegree(0)
     time.sleep(5)
     
     servo.disable_pwm()
