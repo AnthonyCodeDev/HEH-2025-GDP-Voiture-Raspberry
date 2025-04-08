@@ -1,10 +1,15 @@
+import time
+import warnings
 from gpiozero import DistanceSensor
 from gpiozero.pins.pigpio import PiGPIOFactory
-import time
 
+# Supprime les warnings du style "DistanceSensorNoEcho"
+warnings.filterwarnings("ignore")
+
+# Factory pigpio pour meilleure précision
 factory = PiGPIOFactory()
 
-# Liste des GPIO disponibles (à adapter si certaines sont utilisées par autre chose)
+# GPIO candidats
 gpio_list = [5, 6, 9, 11, 19, 20, 21, 23, 24, 25, 26]
 
 def test_combinaison(trigger_pin, echo_pin):
@@ -13,9 +18,12 @@ def test_combinaison(trigger_pin, echo_pin):
 
     print(f"🔄 Test TRIG={trigger_pin}, ECHO={echo_pin} ... ", end="")
     try:
-        sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin, pin_factory=factory, max_distance=4, threshold_distance=0.1)
+        sensor = DistanceSensor(echo=echo_pin, trigger=trigger_pin,
+                                pin_factory=factory, max_distance=4,
+                                threshold_distance=0.1)
         time.sleep(0.1)
         distance = sensor.distance * 100
+        sensor.close()  # Nettoyage immédiat pour éviter les conflits
         if 2 <= distance <= 400:
             print(f"✅ Réponse ! Distance = {distance:.2f} cm")
             return (trigger_pin, echo_pin, distance)
