@@ -20,7 +20,7 @@ class MotorController:
         Quoi   : Contrôle de deux moteurs à courant continu via un pont en H.
         """
         self.__moteur0_pin_a = 17
-        self.__moteur0_pin_b = 22
+        self.__moteur0_pin_b = 18
         self.__moteur1_pin_a = 27
         self.__moteur1_pin_b = 22
         self.__moteur0_enable_pin = 4
