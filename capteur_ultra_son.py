@@ -4,8 +4,8 @@ import time
 import sys
 
 # ✅ Broches correctes pour CD1 (d'après ta dernière photo)
-TRIG = 11  # Orange
-ECHO = 9   # Jaune
+TRIG = 26  # Orange
+ECHO = 19   # Jaune
  
 def auto_check(sensor):
     print("📡 Vérification du capteur HC-SR04 (CD1)...")
