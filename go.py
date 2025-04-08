@@ -6,7 +6,7 @@ Ce script commande la voiture pour qu'elle avance indéfiniment. Deux capteurs u
 sont surveillés pour détecter les obstacles :
     - Le capteur sur trig 26 / echo 19 : si la distance est inférieure à 15 cm, tourner à gauche.
     - Le capteur sur trig 11 / echo 9   : si la distance est inférieure à 15 cm, tourner à droite.
-Après chaque action d'évitement (durée de 3 secondes), les roues sont remises en ligne droite.
+Après chaque action d'évitement (durée de 3 secondes), les roues sont remises à 45° (point mort).
 """
 
 import time
@@ -24,6 +24,9 @@ ANGLE_VIRAGE_DROITE = 40   # un angle positif tourne vers la droite
 # Durée du virage en secondes
 DUREE_VIRAGE = 3
 
+# Angle central (point mort) exprimé en degrés pour le servo
+ANGLE_CENTRAL = 45
+
 def main():
     print("Initialisation des capteurs et des contrôleurs...")
     # Initialisation du capteur de gauche (Trig 26, Echo 19)
@@ -35,10 +38,10 @@ def main():
     motor_ctrl = MotorController()
     servo_ctrl = ServoController()
     
-    # Démarrage en mouvement vers l'avant et remise à la position droite
+    # Démarrage en mouvement vers l'avant et remise des roues en position centrale (45°)
     print("Démarrage : la voiture avance en ligne droite...")
     motor_ctrl.forward(100)
-    servo_ctrl.resetRoue()  # positionne les roues au centre
+    servo_ctrl.setToDegree(ANGLE_CENTRAL)  # Position neutre (point mort à 45°)
     
     try:
         while True:
@@ -48,22 +51,23 @@ def main():
             
             # Vérification du capteur gauche pour un obstacle trop proche
             if distance_gauche < OBSTACLE_THRESHOLD_CM:
-                print(f"Obstacle détecté par le capteur gauche ({round(distance_gauche,2)} cm). Action : virage à gauche.")
+                print(f"Obstacle détecté par le capteur gauche ({round(distance_gauche, 2)} cm). Action : virage à gauche.")
                 # Tourner à gauche
                 servo_ctrl.rotate(ANGLE_VIRAGE_GAUCHE)
                 # On attend pendant la durée du virage
                 time.sleep(DUREE_VIRAGE)
-                # Remise des roues en position droite
-                servo_ctrl.resetRoue()
+                # Remise des roues en position centrale (45°)
+                servo_ctrl.setToDegree(ANGLE_CENTRAL)
                 print("Virage à gauche terminé, reprise de la trajectoire.")
             
-            # Vérification du capteur droite pour un obstacle trop proche
+            # Vérification du capteur droit pour un obstacle trop proche
             elif distance_droite < OBSTACLE_THRESHOLD_CM:
-                print(f"Obstacle détecté par le capteur droite ({round(distance_droite,2)} cm). Action : virage à droite.")
+                print(f"Obstacle détecté par le capteur droit ({round(distance_droite, 2)} cm). Action : virage à droite.")
                 # Tourner à droite
                 servo_ctrl.rotate(ANGLE_VIRAGE_DROITE)
                 time.sleep(DUREE_VIRAGE)
-                servo_ctrl.resetRoue()
+                # Remise des roues en position centrale (45°)
+                servo_ctrl.setToDegree(ANGLE_CENTRAL)
                 print("Virage à droite terminé, reprise de la trajectoire.")
             
             # Petite pause pour éviter de surcharger la boucle de contrôle
