@@ -5,78 +5,75 @@ import time
 class ServoController:
     """
     Contrôleur de servo.
-    
-    Permet de positionner le servo avec un angle relatif par rapport à la position neutre (90° absolu).
-    La plage de déplacement relative est de -45° à +45°.
-    
+
+    Permet de positionner le servo via un angle relatif par rapport à la position centrale (0° relatif, correspondant généralement à 90° absolu).
+    La plage de déplacement relative est ici étendue de -50° à +50°.
+
     Auteur : Anthony Vergeylen
     Date   : 08-04-2025
     """
     def __init__(self, center=320, minimum=200, maximum=500):
         self.pwm = PCA.PWM()
         self.pwm.frequency = 60
-        self.center_val = center   # Valeur PWM correspondant à la position neutre (90° absolu)
-        self.min_val = minimum     # Valeur PWM pour -45° relatif (extrémité gauche)
-        self.max_val = maximum     # Valeur PWM pour +45° relatif (extrémité droite)
+        self.center_val = center   # Valeur PWM correspondant à la position centrale (0° relatif)
+        self.min_val = minimum     # Valeur PWM correspondant à -50°
+        self.max_val = maximum     # Valeur PWM correspondant à +50°
 
     def rotate(self, angle):
         """
-        Positionne le servo à un angle relatif.
+        Positionne le servo à un angle relatif compris entre -50° et +50°.
+        Un angle positif déplace le servo vers la droite,
+        un angle négatif vers la gauche.
         
-        L'angle passé en paramètre est relatif à la position neutre (0° = 90° absolu).
-        Un angle positif déplace le servo vers la droite, un angle négatif vers la gauche.
-        La valeur de l'angle est forcée dans la plage [-45, 45].
-        
-        :param angle: Angle relatif souhaité (entre -45 et 45).
+        :param angle: Angle relatif désiré (entre -50 et 50).
         """
-        # Contraindre l'angle dans l'intervalle [-45, 45]
-        angle = max(-45, min(45, angle))
-        if angle > 0:
-            pulse = self.center_val + ((angle / 45.0) * (self.max_val - self.center_val))
+        # Contraindre l'angle dans l'intervalle [-50, 50]
+        angle = max(-50, min(50, angle))
+        if angle >= 0:
+            pulse = self.center_val + ((angle / 50.0) * (self.max_val - self.center_val))
         else:
-            pulse = self.center_val + ((angle / 45.0) * (self.center_val - self.min_val))
+            pulse = self.center_val + ((angle / 50.0) * (self.center_val - self.min_val))
         self.pwm.write(0, 0, int(pulse))
-
-    def reset_position(self):
-        """
-        Remet le servo en position neutre (0° relatif, donc 90° absolu).
-        """
-        self.rotate(0)
 
     def disable_pwm(self):
         """
         Désactive la sortie PWM afin de ne pas maintenir le signal.
-        Cette commande envoie une valeur qui coupe le signal sur le canal.
+        Cela coupe le signal sur le canal PWM et permet au servo de ne plus être "maintenu".
         """
         self.pwm.write(0, 0, 4096)
 
 def main():
     """
-    Exécute la séquence suivante :
-      1. Tourner à droite de 10° relatif (donc position à +10°).
-      2. Désactiver la sortie PWM pour libérer le servo (il ne maintient pas le signal).
-      3. Attendre 4 secondes.
-      4. Tourner à gauche de 10° relatif (donc position à -10°).
-      5. Désactiver la sortie PWM et attendre 4 secondes.
-      6. Remettre le servo en position neutre (0° relatif) et désactiver la sortie.
-      
-    Ainsi, la commande rotate(n) positionne le servo en absolu (n étant l'angle relatif souhaité).
-    Par exemple, rotate(10) place le servo à +10° et rotate(-10) le place à -10°.
+    Séquence de mouvement du servo :
+      1. Remise en position centrale (0° relatif).
+      2. Rotation à 50° vers la droite.
+      3. Rotation à -50° (50° vers la gauche).
+      4. Remise finale au centre.
+
+    Après chaque commande, la sortie PWM est désactivée pour ne pas bloquer le signal.
+    
+    Auteur : Anthony Vergeylen
+    Date   : 08-04-2025
     """
     servo = ServoController()
     
-    # Tourner vers la droite à +10° relatif
+    # Position centrale
+    servo.rotate(0)
+    servo.disable_pwm()
+    time.sleep(4)
+    
+    # Rotation vers la droite à +50°
     servo.rotate(50)
     servo.disable_pwm()
     time.sleep(4)
     
-    # Tourner vers la gauche à -10° relatif (donc positionner à -10° et non à revenir au 0°)
+    # Rotation vers la gauche à -50°
     servo.rotate(-50)
     servo.disable_pwm()
     time.sleep(4)
     
-    # Remettre en position neutre (0° relatif)
-    servo.reset_position()
+    # Remise au centre
+    servo.rotate(0)
     servo.disable_pwm()
 
 if __name__ == "__main__":
