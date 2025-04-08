@@ -14,6 +14,7 @@ capteur.enable = True
 capteur.integration_time = 100  # temps d'intégration en ms
 
 def detecter_couleur(r, g, b):
+    
     if r > g and r > b:
         return "🔴 Je vois du rouge"
     elif g > r and g > b:

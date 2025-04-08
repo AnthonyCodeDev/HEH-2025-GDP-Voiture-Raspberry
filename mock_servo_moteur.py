@@ -2,7 +2,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-# On suppose que le code de ServoController est dans un fichier nommé 'servo_controller.py'
 from servo_controller import ServoController
 
 class TestServoController(unittest.TestCase):
@@ -37,6 +36,7 @@ class TestServoController(unittest.TestCase):
             (50, 500),
             (60, 500)  # 60 dépasse la limite, doit être clamped à 50° → PWM = 500
         ]
+        
         for angle, expected_pwm in test_cases:
             servo.rotate(angle)
             # On récupère les arguments du dernier appel à pwm.write et on vérifie qu'ils correspondent
