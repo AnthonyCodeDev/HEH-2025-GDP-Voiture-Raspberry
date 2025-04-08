@@ -19,10 +19,13 @@ class ServoMotor(Imotor):
         """
         Positionne le servo à l'angle spécifié (0 à 180 degrés).
         """
-        if not (0 <= angle <= 180):
-            raise ValueError("L'angle doit être compris entre 0 et 180 degrés.")
-        # Conversion de l'angle en valeur entre -1 et 1.
-        self.servo.value = (angle - 90) / 90
+        if type(self.angle) == int:
+            if not (0 <= angle <= 180):
+                raise ValueError("L'angle doit être compris entre 0 et 180 degrés.")
+            # Conversion de l'angle en valeur entre -1 et 1.
+            self.servo.value = (angle - 90) / 90
+        else:
+            raise TypeError("int!!!!")
 
     def read_data(self):
         """
