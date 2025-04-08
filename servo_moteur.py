@@ -62,12 +62,8 @@ def main():
     servo = ServoController()
     
     print("Rotation des roues à +50°...")
-    servo.rotate(50)
+    servo.rotate(0)
     time.sleep(5)
-    
-    print("Réinitialisation des roues à la position droite (0° relatif)...")
-    servo.resetRoue()
-    time.sleep(1)
     
     servo.disable_pwm()
 
