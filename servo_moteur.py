@@ -60,20 +60,20 @@ def main():
     servo.rotate(0)
     time.sleep(5)  # PWM actif pendant 5 secondes pour observer le mouvement
     
-    # Rotation vers la droite
-    print("Rotation vers la droite (+50° relatif)")
-    servo.rotate(50)
-    time.sleep(5)
+    # # Rotation vers la droite
+    # print("Rotation vers la droite (+50° relatif)")
+    # servo.rotate(50)
+    # time.sleep(5)
     
-    # Rotation vers la gauche
-    print("Rotation vers la gauche (-50° relatif)")
-    servo.rotate(-50)
-    time.sleep(5)
+    # # Rotation vers la gauche
+    # print("Rotation vers la gauche (-50° relatif)")
+    # servo.rotate(-50)
+    # time.sleep(5)
     
-    # Remise au centre
-    print("Remise au centre (0° relatif)")
-    servo.rotate(0)
-    time.sleep(5)
+    # # Remise au centre
+    # print("Remise au centre (0° relatif)")
+    # servo.rotate(0)
+    # time.sleep(5)
     
     # Désactivation du PWM
     servo.disable_pwm()
