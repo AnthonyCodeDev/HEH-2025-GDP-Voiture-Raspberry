@@ -133,5 +133,5 @@ def main():
         GPIO.cleanup()
         print("Nettoyage des GPIO terminé.")
 
-if __name__ == "__moteurain__":
+if __name__ == "__main__":
     main()
