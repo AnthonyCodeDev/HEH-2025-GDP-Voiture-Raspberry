@@ -125,11 +125,11 @@ def main():
     try:
         motor_ctrl = MotorController()
         print("Mouvement avant...")
-        motor_ctrl.forward(10)
+        motor_ctrl.forward(100)
         time.sleep(2)
         
         print("Mouvement arrière...")
-        motor_ctrl.backward(-10)
+        motor_ctrl.backward(-100)
         time.sleep(2)
         
         print("Arrêt...")
