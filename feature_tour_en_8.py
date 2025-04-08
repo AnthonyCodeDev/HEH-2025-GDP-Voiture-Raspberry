@@ -5,7 +5,7 @@ from moteur import MotorController
 from servo_controller import ServoController
 
 class TourEn8:
-    def __init__(self, speed=35, total_time=12, dt=0.05):
+    def __init__(self, speed=35, total_time=12, dt=0.02):
         self.motor = MotorController()
         self.servo = ServoController()
         self.speed = speed
@@ -22,7 +22,7 @@ class TourEn8:
                 self.motor.forward(self.speed)
                 time.sleep(self.dt)
             self.motor.stop()
-            self.servo.resetRoue()
+            self.servo.disable_pwm()
         finally:
             GPIO.cleanup()
 
