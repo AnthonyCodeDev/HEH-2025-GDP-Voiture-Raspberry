@@ -67,7 +67,7 @@ def main():
     
     print("Réinitialisation des roues à la position droite (0° relatif)...")
     servo.resetRoue()
-    time.sleep(5)
+    time.sleep(1)
     
     servo.disable_pwm()
 
