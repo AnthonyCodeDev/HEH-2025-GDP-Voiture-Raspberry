@@ -60,21 +60,6 @@ def main():
     # Position centrale
     servo.rotate(0)
     servo.disable_pwm()
-    time.sleep(4)
-    
-    # Rotation vers la droite à +50°
-    servo.rotate(50)
-    servo.disable_pwm()
-    time.sleep(4)
-    
-    # Rotation vers la gauche à -50°
-    servo.rotate(-100)
-    servo.disable_pwm()
-    time.sleep(4)
-    
-    # Remise au centre
-    servo.rotate(0)
-    servo.disable_pwm()
 
 if __name__ == "__main__":
     main()
