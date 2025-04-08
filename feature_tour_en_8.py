@@ -15,7 +15,7 @@ class TourEn8:
     def run(self):
         start_time = time.time()
         try:
-            while time.time() - start_time < self.total_time - 3:
+            while time.time() - start_time < self.total_time - 4.5:
                 t = time.time() - start_time
                 angle = 50 * math.sin(2 * math.pi * t / self.total_time)
                 self.servo.rotate(angle)
