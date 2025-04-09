@@ -56,7 +56,7 @@ class MainController:
         # Mise en position initiale des roues (45° pour qu'elles soient droites)
         print("🔧 Mise en position initiale des roues (45°).")
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
-        time.sleep(2)
+        time.sleep(0.5)
         self.car_controller.servo_ctrl.setToDegree(0)
         time.sleep(0.5)
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
