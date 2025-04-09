@@ -64,9 +64,9 @@ class CarController:
         self.sensor_sample_delay = 0.01  # Délai entre les lectures (en secondes)
 
         # Initialisation des capteurs ultrason
-        self.sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=4, queue_len=1, sample_wait=0)
-        self.sensor_right = DistanceSensor(trigger=11, echo=9, max_distance=4, queue_len=1, sample_wait=0)
-        self.sensor_front = DistanceSensor(trigger=6, echo=5, max_distance=4, queue_len=1, sample_wait=0)
+        self.sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=4, queue_len=1)
+        self.sensor_right = DistanceSensor(trigger=11, echo=9, max_distance=4, queue_len=1)
+        self.sensor_front = DistanceSensor(trigger=6, echo=5, max_distance=4, queue_len=1)
 
 
         # Initialisation des contrôleurs de moteurs et de servo
