@@ -131,8 +131,6 @@ class RGBSensorController:
                     car_thread = threading.Thread(target=car_launcher.launch)
                     car_thread.start()
                     car_launched = True
-            else:
-                print("🎯 Rien de nouveau détecté (environnement stable)")
             time.sleep(1)
 
 
