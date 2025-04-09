@@ -43,7 +43,7 @@ class ControllerCar:
 
         # Paramètres de virage
         self.angle_virage_gauche = -1
-        self.angle_virage_droite = 34
+        self.angle_virage_droite = 1
         self.angle_central = 45
 
         # Durées (en secondes)
