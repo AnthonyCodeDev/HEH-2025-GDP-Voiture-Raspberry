@@ -38,8 +38,8 @@ class ControllerCar:
 
         # Seuils de détection (en cm)
         self.side_threshold = 15         # Obstacle latéral
-        self.front_threshold = 30        # Obstacle frontal (avertissement)
-        self.emergency_threshold = 30    # Obstacle frontal (urgence)
+        self.front_threshold = 35        # Obstacle frontal (avertissement)
+        self.emergency_threshold = 35    # Obstacle frontal (urgence)
 
         # Paramètres de virage
         self.angle_virage_gauche = -30
@@ -48,7 +48,7 @@ class ControllerCar:
 
         # Durées (en secondes)
         self.duree_virage = 0.3
-        self.duree_marche_arriere = 0.2
+        self.duree_marche_arriere = 0.3
         self.reverse_pause = 0.5
 
         # Initialisation du module de capteurs de distance
