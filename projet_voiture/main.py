@@ -17,7 +17,7 @@ import busio
 import adafruit_tcs34725
 
 from CarController import CarController
-from ServeurWebVoiture import app
+from ServeurWebVoiture import VoitureServer  # Importation de la classe VoitureServer
 
 class RGBSensorController:
     """
@@ -57,12 +57,11 @@ class RGBSensorController:
 
     def calibrate(self):
         """
-        Effectue la calibration du capteur RGB pendant une durée spécifiée pour obtenir
-        les valeurs de référence (ref_r, ref_g, ref_b).
+        Calcule les valeurs de référence (ref_r, ref_g, ref_b) durant une période de calibration.
 
         QUI: Vergeylen Anthony
         QUAND: 09-04-2025
-        QUOI: Calcule les valeurs moyennes RGB sur une période donnée afin d'établir la base de comparaison.
+        QUOI: Mesure plusieurs échantillons pendant la calibration pour établir une base de comparaison.
         """
         print("🛠️ Calibration en cours... Ne touchez à rien pendant 5 secondes.")
         nb_mesures = 0
@@ -87,11 +86,11 @@ class RGBSensorController:
         :param r: Valeur du rouge.
         :param g: Valeur du vert.
         :param b: Valeur du bleu.
-        :return: Un str indiquant la couleur dominante ("rouge", "vert", "bleu" ou "indéterminé").
+        :return: La couleur dominante ("rouge", "vert", "bleu" ou "indéterminé").
 
         QUI: Vergeylen Anthony
         QUAND: 09-04-2025
-        QUOI: Compare les composantes RGB pour identifier laquelle est la plus élevée.
+        QUOI: Compare les composantes RGB pour identifier la couleur dominante.
         """
         if r > g and r > b:
             return "rouge"
@@ -143,7 +142,7 @@ class CarLauncher:
     """
     def __init__(self):
         """
-        Initialise l'instance de CarController à partir du module go.
+        Initialise l'instance de CarController à partir du module CarController.
 
         QUI: Vergeylen Anthony
         QUAND: 09-04-2025
@@ -204,7 +203,9 @@ class WebServer:
         QUOI: Lance le serveur web pour l'accès via le navigateur.
         """
         print(f"🌐 Lancement du serveur web sur {self.host}:{self.port}")
-        app.run(host=self.host, port=self.port)
+        # Créer une instance de VoitureServer pour lancer l'application Flask
+        server = VoitureServer(self.host, self.port)
+        server.run()
 
 
 class MainController:
