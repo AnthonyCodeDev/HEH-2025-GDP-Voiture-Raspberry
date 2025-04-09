@@ -20,55 +20,58 @@ from MotorController import MotorController
 from ServoController import ServoController
 import RPi.GPIO as GPIO
 
-
 class CarController:
     """
     Contrôleur principal pour la voiture autonome.
-
-    Cette classe lit et filtre les mesures des capteurs ultrason,
-    et commande les moteurs et le servo pour assurer une navigation fluide
-    en évitant les obstacles, que ce soit un mur frontal ou des obstacles latéraux.
+    
+    Cette classe lit et filtre les mesures des capteurs ultrason et commande les moteurs et le servo
+    pour assurer une navigation fluide en évitant les obstacles.
 
     QUI : Vergeylen Anthony
     QUAND : 08-04-2025
     QUOI : Initialise et orchestre la gestion des capteurs, moteurs et servo pour éviter les obstacles.
     """
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(CarController, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self):
-        """
-        Initialise les capteurs, contrôleurs et paramètres.
+        # Pour éviter de réinitialiser si l'instance a déjà été initialisée
+        if hasattr(self, '_initialized') and self._initialized:
+            return
 
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Configure les seuils, angles, durées et instancie les capteurs ainsi que les contrôleurs pour la navigation.
-        """
         # Paramètres de détection (en cm)
         self.side_threshold = 15         # Seuil latéral : obstacle sur les côtés
         self.front_threshold = 30        # Seuil frontal : avertissement anticipé
         self.emergency_threshold = 10    # Seuil frontal d'urgence : action immédiate
 
         # Paramètres de virage et positionnement
-        self.angle_virage_gauche = -40   # Virage à gauche (valeur négative)
-        self.angle_virage_droite = 40    # Virage à droite (valeur positive)
-        self.angle_central = 45          # Point mort du servo (position neutre)
+        self.angle_virage_gauche = -40   # Virage à gauche
+        self.angle_virage_droite = 40    # Virage à droite
+        self.angle_central = 45          # Position centrale du servo
 
-        # Durées (en secondes)
-        self.duree_virage = 3            # Durée d'un virage
-        self.duree_marche_arriere = 1    # Durée de marche arrière lors d'un obstacle frontal
-        self.reverse_pause = 0.5         # Pause avant de reculer
+        # Durées en secondes
+        self.duree_virage = 3
+        self.duree_marche_arriere = 1
+        self.reverse_pause = 0.5
 
-        # Paramètres du filtrage des capteurs
-        self.sensor_sample_count = 5     # Nombre d'échantillons pour obtenir une lecture moyenne
-        self.sensor_sample_delay = 0.01  # Délai entre les lectures (en secondes)
+        # Paramètres du filtrage
+        self.sensor_sample_count = 5
+        self.sensor_sample_delay = 0.01
 
         # Initialisation des capteurs ultrason
         self.sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=4)
         self.sensor_right = DistanceSensor(trigger=11, echo=9, max_distance=4)
         self.sensor_front = DistanceSensor(trigger=6, echo=5, max_distance=4)
 
-        # Initialisation des contrôleurs de moteurs et de servo
+        # Initialisation des contrôleurs
         self.motor_ctrl = MotorController()
         self.servo_ctrl = ServoController()
+
+        self._initialized = True
 
     def get_filtered_distance(self, sensor):
         """

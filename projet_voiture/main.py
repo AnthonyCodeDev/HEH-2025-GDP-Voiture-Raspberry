@@ -175,15 +175,13 @@ class MainController:
     QUOI: Initialise et démarre en parallèle l'ensemble des composants du système de contrôle de la voiture.
     """
     def __init__(self):
-        """
-        Initialise les instances des contrôleurs RGB, de la voiture autonome et du serveur web.
-        """
-        # Crée une seule instance de CarController
+        # Crée une seule instance de CarController (grâce au singleton)
         self.car_controller = CarController()
         self.rgb_sensor = RGBSensorController(threshold=5, integration_time=100, calibration_duration=5)
         self.car_launcher = CarLauncher(self.car_controller)
         # Transmet l'instance partagée à VoitureServer
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
+    
 
     def start_services(self):
         """
