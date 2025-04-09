@@ -15,7 +15,7 @@ En cas d'interruption clavier (Ctrl+C), les moteurs s'arrêtent, le servo est d�
 """
 
 import time
-from gpiozero import DistanceSensor
+from gpiozero import DistanceSensor, DistanceSensorNoEcho
 from moteur import MotorController
 from servo_controller import ServoController
 import RPi.GPIO as GPIO
@@ -70,22 +70,23 @@ class CarController:
         self.motor_ctrl = MotorController()
         self.servo_ctrl = ServoController()
 
-    def get_filtered_distance(self, sensor):
+    def get_filtered_distance(self, sensor, sensor_name=""):
         """
-        Retourne la distance moyenne mesurée par un capteur après filtrage.
+        Retourne la distance moyenne mesurée par un capteur après filtrage, ou None si capteur muet.
 
         :param sensor: Instance de DistanceSensor.
-        :return: Distance moyenne en cm.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Effectue plusieurs mesures du capteur et retourne la moyenne pour réduire le bruit.
+        :param sensor_name: Nom du capteur pour debug (ex: "Avant", "Gauche", "Droite")
+        :return: Distance moyenne en cm ou None si erreur.
         """
         total = 0.0
-        for _ in range(self.sensor_sample_count):
-            total += sensor.distance  # gpiozero retourne la distance en mètres
-            time.sleep(self.sensor_sample_delay)
-        return (total / self.sensor_sample_count) * 100
+        try:
+            for _ in range(self.sensor_sample_count):
+                total += sensor.distance  # gpiozero retourne en mètres
+                time.sleep(self.sensor_sample_delay)
+            return (total / self.sensor_sample_count) * 100
+        except DistanceSensorNoEcho:
+            print(f"\033[91m[ERREUR] Aucun écho reçu pour le capteur {sensor_name} (peut-être mal branché ?)\033[0m")
+            return None
 
     def run(self):
         """
