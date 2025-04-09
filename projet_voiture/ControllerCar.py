@@ -69,6 +69,7 @@ class ControllerCar:
         self.motor_speed_forwards = 35
         self.motor_speed_backwards = 40
 
+
     def run(self):
         """
         Lance la boucle principale de contrôle autonome de la voiture.
@@ -108,6 +109,8 @@ class ControllerCar:
                     self.handle_left_obstacle()
                 elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
+
+                time.sleep(0.1)  # Délai pour éviter une boucle trop rapide
 
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
