@@ -13,8 +13,8 @@ QUAND: 09-04-2025
 import time
 import threading
 
-from CarController import CarController
-from ServeurWebVoiture import VoitureServer
+from ControllerCar import ControllerCar
+from WebServerCar import VoitureServer
 from CapteurRGB import CapteurRGB
 
 class CarLauncher:
@@ -22,7 +22,7 @@ class CarLauncher:
     Classe pour lancer le contrôle autonome de la voiture.
 
     QUI: Vergeylen Anthony
-    QUOI: Utilise une instance existante de CarController pour démarrer le contrôle autonome.
+    QUOI: Utilise une instance existante de ControllerCar pour démarrer le contrôle autonome.
     """
     def __init__(self, car_controller):
         self.car_controller = car_controller
@@ -45,12 +45,12 @@ class MainController:
     QUOI: Initialise et démarre en parallèle l'ensemble des composants du système.
     """
     def __init__(self):
-        # Création d'une seule instance de CarController (Singleton)
-        self.car_controller = CarController()
+        # Création d'une seule instance de ControllerCar (Singleton)
+        self.car_controller = ControllerCar()
         # Instanciation du capteur RGB depuis le module dédié
         self.rgb_sensor = CapteurRGB(threshold=5, integration_time=100, calibration_duration=5)
         self.car_launcher = CarLauncher(self.car_controller)
-        # Transmet l'instance partagée de CarController au serveur web
+        # Transmet l'instance partagée de ControllerCar au serveur web
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
 
     def start_services(self):

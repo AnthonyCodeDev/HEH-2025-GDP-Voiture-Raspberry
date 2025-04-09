@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import PWM as PCA
 
-class MotorController:
+class ControllerMotor:
     """
     Contrôleur de moteurs DC.
 
@@ -123,7 +123,7 @@ def main():
     Quoi   : Fonction principale pour tester le contrôleur de moteurs.
     """
     try:
-        motor_ctrl = MotorController()
+        motor_ctrl = ControllerMotor()
         print("Mouvement avant...")
         motor_ctrl.forward(100)
         time.sleep(2)

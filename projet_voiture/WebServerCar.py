@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-ServeurWebVoiture.py
+WebServerCar.py
 --------------------
 Ce module fournit une interface web via Flask pour contrôler la voiture.
 Les actions possibles incluent :
-  - 'lancer'  : Lancer la voiture en mode autonome via CarController.
+  - 'lancer'  : Lancer la voiture en mode autonome via ControllerCar.
   - 'avancer' : Faire avancer la voiture en mode simple via VoitureController.
   - 'reset'   : (Non implémenté pour l'instant)
 
@@ -16,9 +16,9 @@ Quoi   : Permet de contrôler la voiture via une interface web.
 from flask import Flask, render_template, request, redirect, url_for
 import threading
 import time
-from MotorController import MotorController  # Module personnalisé pour contrôler les moteurs
+from ControllerMotor import ControllerMotor  # Module personnalisé pour contrôler les moteurs
 import RPi.GPIO as GPIO
-from CarController import CarController     # Module de contrôle autonome de la voiture
+from ControllerCar import ControllerCar     # Module de contrôle autonome de la voiture
 
 class VoitureController:
     """
@@ -37,7 +37,7 @@ class VoitureController:
         """
         self.duration = duration
         self.speed = speed
-        self.motor = MotorController()
+        self.motor = ControllerMotor()
 
     def lancer_voiture(self):
         """
@@ -61,7 +61,7 @@ class VoitureServer:
 
     QUI: Anthony Vergeylen
     QUAND: 08-04-2025
-    QUOI: Permet d'interagir avec la voiture via une interface web en utilisant une instance partagée de CarController.
+    QUOI: Permet d'interagir avec la voiture via une interface web en utilisant une instance partagée de ControllerCar.
     """
     def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None):
         """
@@ -69,13 +69,13 @@ class VoitureServer:
 
         :param host: Adresse IP pour héberger le serveur (par défaut : '0.0.0.0').
         :param port: Port pour le serveur (par défaut : 5000).
-        :param autonomous_controller: Instance partagée de CarController à utiliser.
+        :param autonomous_controller: Instance partagée de ControllerCar à utiliser.
         """
         self.host = host
         self.port = port
         self.app = Flask(__name__, template_folder='templates')
         if autonomous_controller is None:
-            self.autonomous_controller = CarController()
+            self.autonomous_controller = ControllerCar()
         else:
             self.autonomous_controller = autonomous_controller
         self.basic_controller = VoitureController()
@@ -99,7 +99,7 @@ class VoitureServer:
         Traite les actions envoyées via le formulaire web.
         
         Les actions gérées sont :
-          - 'lancer' : Lance la voiture en mode autonome via CarController.
+          - 'lancer' : Lance la voiture en mode autonome via ControllerCar.
           - 'reset'  : (Non implémenté) Réinitialiser et relancer la voiture.
           - 'avancer': Fait avancer la voiture en mode simple via VoitureController.
         """

@@ -2,7 +2,7 @@
 import PWM as PCA
 import time
 
-class ServoController:
+class ControllerServo:
     """
     Contrôleur de servo pour les roues.
     
@@ -68,7 +68,7 @@ class ServoController:
 
 def main():
     # TEST !
-    servo = ServoController()
+    servo = ControllerServo()
     
     print("Rotation des roues à +50°...")
     servo.setToDegree(90)

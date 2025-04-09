@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CarController.py
+ControllerCar.py
 ----------------
 Ce module gère le contrôle autonome de la voiture.
 Il orchestre la lecture des mesures des capteurs de distance (via le module CapteurDistance),
@@ -8,16 +8,16 @@ la commande des moteurs et du servo, et le comportement d'évitement des obstacl
 
 Auteur : Vergeylen Anthony
 Date   : 08-04-2025
-Quoi   : Fournit la classe CarController qui utilise CapteurDistance pour obtenir les mesures nécessaires à la navigation.
+Quoi   : Fournit la classe ControllerCar qui utilise CapteurDistance pour obtenir les mesures nécessaires à la navigation.
 """
 
 import time
-from MotorController import MotorController
-from ServoController import ServoController
+from ControllerMotor import ControllerMotor
+from ControllerServo import ControllerServo
 from CapteurDistance import CapteurDistance
 import RPi.GPIO as GPIO
 
-class CarController:
+class ControllerCar:
     """
     Contrôleur principal pour la voiture autonome.
 
@@ -30,7 +30,7 @@ class CarController:
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(CarController, cls).__new__(cls)
+            cls._instance = super(ControllerCar, cls).__new__(cls)
         return cls._instance
 
     def __init__(self):
@@ -57,8 +57,8 @@ class CarController:
         self.capteur = CapteurDistance()
 
         # Initialisation des contrôleurs de moteurs et du servo
-        self.motor_ctrl = MotorController()
-        self.servo_ctrl = ServoController()
+        self.motor_ctrl = ControllerMotor()
+        self.servo_ctrl = ControllerServo()
 
         self._initialized = True
 
