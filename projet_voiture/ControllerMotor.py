@@ -40,6 +40,42 @@ class ControllerMotor:
         GPIO.setmode(GPIO.BCM)
         for pin in self.__gpio_pins:
             GPIO.setup(pin, GPIO.OUT)
+    
+    def check_motor(self):
+        """
+         Vérifie le bon fonctionnement des moteurs via un test simple (activation rapide).
+
+        Auteur : Di Leto Matteo
+        Date   : 09-04-2025
+        Quoi   : Teste brièvement chaque moteur pour s'assurer qu'ils sont bien alimentés.
+        """
+        try:
+            print(" Vérification des moteurs...")
+            
+            # Activation rapide pour moteur 0
+            GPIO.output(self.__moteur0_pin_a, GPIO.HIGH)
+            GPIO.output(self.__moteur0_pin_b, GPIO.LOW)
+            self.__pwm_controller.write(self.__moteur0_enable_pin, 0, 1000)
+            time.sleep(0.2)
+            self.__pwm_controller.write(self.__moteur0_enable_pin, 0, 0)
+
+            # Activation rapide pour moteur 1
+            GPIO.output(self.__moteur1_pin_a, GPIO.HIGH)
+            GPIO.output(self.__moteur1_pin_b, GPIO.LOW)
+            self.__pwm_controller.write(self.__moteur1_enable_pin, 0, 1000)
+            time.sleep(0.2)
+            self.__pwm_controller.write(self.__moteur1_enable_pin, 0, 0)
+
+            print(" GPIO moteurs : OK")
+            return True
+
+        except Exception as e:
+            print(f" GPIO moteurs : ERREUR -> {e}")
+            return False
+
+        finally:
+            for pin in self.__gpio_pins:
+                GPIO.output(pin, GPIO.LOW)
 
     def __apply_motor_state(self, pin_a, pin_b, pwm_value):
         """
