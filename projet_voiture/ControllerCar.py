@@ -48,7 +48,7 @@ class ControllerCar:
 
         # Durées (en secondes)
         self.duree_virage = 1.4
-        self.duree_marche_arriere = 0.75
+        self.duree_marche_arriere = 0.5
         self.reverse_pause = 0.5
 
         # Initialisation du module de capteurs de distance
@@ -66,7 +66,7 @@ class ControllerCar:
 
         self._initialized = True
 
-        self.motor_speed_forwards = 30
+        self.motor_speed_forwards = 35
         self.motor_speed_backwards = 40
 
     def run(self):
