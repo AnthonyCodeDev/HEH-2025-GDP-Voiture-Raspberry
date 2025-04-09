@@ -37,7 +37,7 @@ class ControllerServo:
         print(f"rotate({angle}) -> PWM: {int(pulse)}")
 
     # def settodegree (pas juste rotate, mais mettre à une position précise)
-    def setToDegree(self, angle):
+    def setToDegree(self, angle): 
         """
         Positionne les roues à un angle absolu entre 0° et 180°.
         Un angle de 0° correspond à la position centrée (0° relatif).
