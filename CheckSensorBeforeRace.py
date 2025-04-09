@@ -12,7 +12,10 @@ import RPi.GPIO as GPIO
 import RPi.GPIO as GPIO
 import time
 
-def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
+import RPi.GPIO as GPIO
+import time
+
+def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur", timeout=1):
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(trigger_pin, GPIO.OUT)
     GPIO.setup(echo_pin, GPIO.IN)
@@ -27,14 +30,20 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
         time.sleep(0.00001)  # 10 microsecondes
         GPIO.output(trigger_pin, False)
 
-        # Attente de l'écho
+        # Attente de l'écho avec timeout
         pulse_start = time.time()
         while GPIO.input(echo_pin) == 0:
-            pulse_start = time.time()  # Enregistrer l'instant du début de l'écho
+            pulse_start = time.time()
+            if time.time() - pulse_start > timeout:
+                print(f"Erreur : {nom_capteur} - Pas d'écho reçu dans les délais.")
+                return None  # Sortir de la fonction si pas d'écho
 
         pulse_end = time.time()
         while GPIO.input(echo_pin) == 1:
-            pulse_end = time.time()  # Enregistrer l'instant de fin de l'écho
+            pulse_end = time.time()
+            if time.time() - pulse_end > timeout:
+                print(f"Erreur : {nom_capteur} - Pas de fin d'écho dans les délais.")
+                return None  # Sortir de la fonction si l'écho est trop long
 
         # Calcul de la durée de l'écho
         pulse_duration = pulse_end - pulse_start
@@ -45,9 +54,11 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
             print(f"Erreur : distance {distance} cm hors de la plage utile pour {nom_capteur}.")
         else:
             print(f"Capteur {nom_capteur} : distance = {distance} cm")
+        return distance  # Retourner la distance
 
     except Exception as e:
         print(f"Erreur capteur {nom_capteur} : {e}")
+        return None  # Retourner None en cas d'erreur
 
     finally:
         GPIO.cleanup()  # Nettoyage des GPIO
