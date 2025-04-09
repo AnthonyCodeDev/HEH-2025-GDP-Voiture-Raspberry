@@ -39,8 +39,6 @@ class LineFollower:
                 print("⬛ Ligne noire détectée ! Arrêt immédiat de la voiture.")
                 car_launcher.shutdown()
                 self.monitoring = False
-            else:
-                print("➡️ Surface claire détectée (blanc)")
             sleep(0.5)
 
     def stop_monitoring(self):
