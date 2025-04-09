@@ -1,0 +1,120 @@
+#import sys
+#import types
+from unittest.mock import MagicMock
+
+# Simulation du module RPi.GPIO
+#mock_gpio = types.ModuleType('RPi.GPIO')
+#mock_gpio.OUT = None
+#mock_gpio.IN = None
+#mock_gpio.HIGH = 1
+#mock_gpio.LOW = 0
+#mock_gpio.setmode = lambda mode: None
+#mock_gpio.setup = lambda pin, mode: None
+#mock_gpio.output = lambda pin, value: None
+#mock_gpio.cleanup = lambda: None
+#mock_gpio.setwarnings = lambda flag: None
+#mock_gpio.BCM = None
+#
+#sys.modules['RPi'] = types.ModuleType('RPi')
+#sys.modules['RPi.GPIO'] = mock_gpio
+#
+## Simule le module PWM (utilisé comme PCA)
+#mock_pwm_module = types.ModuleType('PWM')
+#mock_pwm_class = MagicMock()
+#mock_pwm_module.PWM = lambda: mock_pwm_class
+#sys.modules['PWM'] = mock_pwm_module
+
+import unittest
+from unittest.mock import MagicMock, call, patch
+
+# On suppose que votre code se trouve dans le fichier 'moteur.py'
+from MotorController import MotorController
+
+class TestMotorController(unittest.TestCase):
+    @patch('RPi.GPIO')
+    @patch('PWM.PWM')
+    def setUp(self, mock_PWM, mock_GPIO):
+        self.mock_GPIO = mock_GPIO  # Pour réutiliser dans les tests
+        self.pwm_instance = MagicMock()
+        mock_PWM.return_value = self.pwm_instance
+
+        # Création de l'instance du contrôleur
+        self.controller = MotorController()
+
+        # Réinitialisation des historiques de mocks
+        #self.mock_GPIO.output.reset_mock()
+        #self.pwm_instance.write.reset_mock()
+    def test_forward(self):
+        # Appel de la méthode forward
+        self.controller.forward(100)
+
+
+        
+
+if __name__ == '__main__':
+    unittest.main()
+
+        # Vérification des appels GPIO
+        #self.mock_GPIO.output.assert_any_call(17, self.mock_GPIO.HIGH)
+        #self.mock_GPIO.output.assert_any_call(18, self.mock_GPIO.LOW)
+        #self.mock_GPIO.output.assert_any_call(27, self.mock_GPIO.HIGH)
+        #self.mock_GPIO.output.assert_any_call(22, self.mock_GPIO.LOW)
+        # Vérification des appels PWM
+        #self.pwm_instance.write.assert_any_call(4, 0, 4095)
+        #self.pwm_instance.write.assert_any_call(5, 0, 4095)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #def test_forward(self):
+    #    # Appel de la méthode forward
+    #    self.controller.forward(100)
+
+    #    # Vérification des appels GPIO
+    #    expected_gpio_calls = [
+    #        call(17, self.mock_GPIO.HIGH),
+    #        call(18, self.mock_GPIO.LOW),
+    #        call(27, self.mock_GPIO.HIGH),
+    #        call(22, self.mock_GPIO.LOW)
+    #    ]
+    #    self.mock_GPIO.output.assert_has_calls(expected_gpio_calls, any_order=True)
+
+    #    # Vérification des appels PWM
+    #    expected_pwm_calls = [
+    #        call(4, 0, 4095),
+    #        call(5, 0, 4095)
+    #    ]
+    #    self.pwm_instance.write.assert_has_calls(expected_pwm_calls, any_order=True)
+
+
+
