@@ -8,39 +8,38 @@ import sys
 
 import RPi.GPIO as GPIO
 
-TRIG_PIN = 11
-ECHO_PIN = 9
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(TRIG_PIN, GPIO.OUT)
-GPIO.setup(ECHO_PIN, GPIO.IN)
+def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(trigger_pin, GPIO.OUT)
+    GPIO.setup(echo_pin, GPIO.IN)
 
-try:
-    GPIO.output(TRIG_PIN, False)
-    print("Stabilisation du capteur...")
-    time.sleep(2)
+    try:
+        GPIO.output(trigger_pin, False)
+        print("Stabilisation du capteur...")
+        time.sleep(2)
 
-    GPIO.output(TRIG_PIN, True)
-    time.sleep(0.00001)
-    GPIO.output(TRIG_PIN, False)
+        GPIO.output(trigger_pin, True)
+        time.sleep(0.00001)
+        GPIO.output(trigger_pin, False)
 
-    while GPIO.input(ECHO_PIN) == 0:
-        pulse_start = time.time()
+        while GPIO.input(echo_pin) == 0:
+            pulse_start = time.time()
 
-    while GPIO.input(ECHO_PIN) == 1:
-        pulse_end = time.time()
+        while GPIO.input(echo_pin) == 1:
+            pulse_end = time.time()
 
-    pulse_duration = pulse_end - pulse_start
-    distance = pulse_duration * 17150
-    distance = round(distance, 2)
+        pulse_duration = pulse_end - pulse_start
+        distance = pulse_duration * 17150
+        distance = round(distance, 2)
 
-    print(f"Capteur Ultrason : distance = {distance} cm")
+        print(f"Capteur {nom_capteur} : distance = {distance} cm")
 
-except Exception as e:
-    print(f" Erreur capteur ultrason : {e}")
+    except Exception as e:
+        print(f" Erreur capteur {nom_capteur} : {e}")
 
-finally:
-    GPIO.cleanup()
+    finally:
+        GPIO.cleanup()
 
 # --- Vérification GPIO moteurs ---
 def test_gpio_moteur(pins):
@@ -77,7 +76,7 @@ def test_rgb_sensor():
         return False
 
 # --- Vérification capteurs ultrason ---
-def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
+"""def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
     try:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(trigger_pin, GPIO.OUT)
@@ -95,7 +94,7 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
             time.sleep(0.1)
             GPIO.output(trigger_pin, False)
 
-            # Attente de l’écho
+            # Attente de l écho
             debut = time.time()
             timeout = debut + 0.04
             while GPIO.input(echo_pin) == 0 and time.time() < timeout:
@@ -125,7 +124,7 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
         return False
 
     finally:
-        GPIO.cleanup()
+        GPIO.cleanup()"""
 
 
 def main():
