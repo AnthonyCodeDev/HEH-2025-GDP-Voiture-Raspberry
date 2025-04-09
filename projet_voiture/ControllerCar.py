@@ -172,7 +172,7 @@ class ControllerCar:
         print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(), 2)} cm). Recul léger, puis virage à gauche.")
         
         # Étape 1 : Recul léger (vitesse négative)
-        self.motor_ctrl.backward(-self.motor_speed_forwards * 0.5)
+        self.motor_ctrl.backward(-self.motor_speed_backwards)
         time.sleep(1)
         self.motor_ctrl.stop()
 
@@ -189,7 +189,7 @@ class ControllerCar:
         print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(), 2)} cm). Recul léger, puis virage à droite.")
         
         # Étape 1 : Recul léger (vitesse négative)
-        self.motor_ctrl.backward(-self.motor_speed_forwards * 0.5)
+        self.motor_ctrl.backward(-self.motor_speed_backwards)
         time.sleep(1)
         self.motor_ctrl.stop()
 
