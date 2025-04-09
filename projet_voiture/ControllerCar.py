@@ -5,12 +5,10 @@ ControllerCar.py
 Ce module gère le contrôle autonome de la voiture.
 Il orchestre la lecture des mesures des capteurs de distance (via le module CapteurDistance),
 la commande des moteurs et du servo, et le comportement d'évitement des obstacles.
-Il simule également une vitesse dynamique qui s'ajuste de manière fluide en fonction des actions.
 
 Auteur : Vergeylen Anthony
-Date   : 08-04-2025 (modifié le 09-04-2025)
-Quoi   : Fournit la classe ControllerCar qui utilise CapteurDistance pour obtenir les mesures nécessaires
-         à la navigation et simule une vitesse variable en m/s.
+Date   : 08-04-2025
+Quoi   : Fournit la classe ControllerCar qui utilise CapteurDistance pour obtenir les mesures nécessaires à la navigation.
 """
 
 import time
@@ -24,7 +22,7 @@ class ControllerCar:
     Contrôleur principal pour la voiture autonome.
 
     QUI : Vergeylen Anthony
-    QUOI: Surveille les mesures de distance fournies par les capteurs et commande
+    QUOI : Surveille les mesures de distance fournies par les capteurs et commande
            les moteurs et le servo pour éviter les obstacles, tout en simulant la vitesse dynamique.
     """
     _instance = None
@@ -43,7 +41,7 @@ class ControllerCar:
         self.front_threshold = 30        # Obstacle frontal (avertissement)
         self.emergency_threshold = 10    # Obstacle frontal (urgence)
 
-        # Paramètres de virage (en degrés)
+        # Paramètres de virage
         self.angle_virage_gauche = -22.5
         self.angle_virage_droite = 45
         self.angle_central = 45
@@ -60,18 +58,21 @@ class ControllerCar:
         self.motor_ctrl = ControllerMotor()
         self.servo_ctrl = ControllerServo()
 
-        # Simulation de la vitesse dynamique (en m/s)
-        self.current_speed = 0.0          # vitesse actuelle en m/s
-        self.max_speed = 2.0              # vitesse maximum simulée en m/s (à 100% de puissance)
-        self.acceleration_rate = 0.1      # accroissement de la vitesse par cycle (m/s)
-        self.deceleration_rate = 0.1      # réduction de la vitesse par cycle (m/s)
+        # Simulation de la vitesse dynamique
+        self.current_speed = 0.0     # vitesse actuelle en m/s
+        self.max_speed = 2.0         # vitesse maximum simulée en m/s
+        self.acceleration = 0.1      # augmentation m/s par cycle (ajustable)
+        self.deceleration = 0.2      # décélération lors d'une interruption (ajustable)
 
         self._initialized = True
 
     def run(self):
         """
         Lance la boucle principale de contrôle autonome de la voiture.
-        Simule une accélération progressive et ajuste la vitesse en fonction des obstacles et virages.
+
+        QUI : Vergeylen Anthony
+        QUOI : Démarre le mouvement en avant, simule l'accélération jusqu'à la vitesse max,
+               et adapte la vitesse en fonction des conditions (obstacles, virages, etc.).
         """
         print("Démarrage : la voiture avance en ligne droite...")
         self.motor_ctrl.forward(100)
@@ -80,9 +81,9 @@ class ControllerCar:
 
         try:
             while True:
-                # Simulation d'une accélération progressive
+                # Simuler une accélération progressive si aucune action perturbatrice n'intervient
                 if self.current_speed < self.max_speed:
-                    self.current_speed += self.acceleration_rate
+                    self.current_speed += self.acceleration
                     if self.current_speed > self.max_speed:
                         self.current_speed = self.max_speed
 
@@ -93,8 +94,19 @@ class ControllerCar:
 
                 print(f"Distances -> Avant: {round(distance_front,2)} cm, Gauche: {round(distance_left,2)} cm, Droite: {round(distance_right,2)} cm, Vitesse: {round(self.current_speed,2)} m/s")
 
-                # S'il y a un obstacle devant (urgent ou avertissement), on effectue un virage
-                if distance_front < self.emergency_threshold or distance_front < self.front_threshold:
+                # Gestion des différents cas
+                if distance_front < self.emergency_threshold:
+                    print(f"URGENCE! Obstacle frontal très proche ({round(distance_front,2)} cm).")
+                    self.motor_ctrl.stop()
+                    self.current_speed = 0.0
+                    time.sleep(0.5)
+                    self.motor_ctrl.backward(-100)
+                    self.current_speed = -0.5  # vitesse de recul simulée
+                    time.sleep(self.duree_marche_arriere * 1.5)
+                    self.motor_ctrl.forward(100)
+                    self.servo_ctrl.setToDegree(self.angle_central)
+                    self.current_speed = self.max_speed  # reprise de la vitesse
+                elif distance_front < self.front_threshold:
                     self.handle_front_obstacle()
                 elif distance_left < self.side_threshold and distance_right < self.side_threshold:
                     self.handle_double_side_obstacle()
@@ -109,103 +121,50 @@ class ControllerCar:
         finally:
             self.cleanup()
 
-    def smooth_decelerate(self, target_speed):
-        """
-        Décélère progressivement la vitesse jusqu'à target_speed.
-        """
-        while self.current_speed > target_speed:
-            self.current_speed -= self.deceleration_rate
-            if self.current_speed < target_speed:
-                self.current_speed = target_speed
-            time.sleep(0.1)
-            print(f"Décélération: Vitesse = {round(self.current_speed,2)} m/s")
-
-    def smooth_accelerate(self, target_speed):
-        """
-        Accélère progressivement la vitesse jusqu'à target_speed.
-        """
-        while self.current_speed < target_speed:
-            self.current_speed += self.acceleration_rate
-            if self.current_speed > target_speed:
-                self.current_speed = target_speed
-            time.sleep(0.1)
-            print(f"Accélération: Vitesse = {round(self.current_speed,2)} m/s")
-
     def handle_front_obstacle(self):
-        """
-        Gère l'évitement d'un obstacle frontal.
-        Au lieu de repartir tout droit après un recul, la voiture tourne vers le côté offrant le plus de clearance.
-        """
-        distance_front = self.capteur.get_distance_front()
-        print(f"Obstacle frontal détecté ({round(distance_front,2)} cm).")
-        # Décélération progressive jusqu'à 0
-        self.smooth_decelerate(0)
-        self.motor_ctrl.stop()
-        time.sleep(self.reverse_pause)
-
-        print("Marche arrière pour dégager l'obstacle frontal...")
-        self.motor_ctrl.backward(-100)
-        self.current_speed = 0.0  # Après le recul, vitesse nulle
-        time.sleep(self.duree_marche_arriere)
-
-        # Choix du virage selon la clearance latérale
         distance_left = self.capteur.get_distance_left()
         distance_right = self.capteur.get_distance_right()
-        if distance_left > distance_right:
-            print(f"Plus de clearance à gauche (G: {round(distance_left,2)} cm, D: {round(distance_right,2)} cm). Virage à gauche.")
-            self.servo_ctrl.rotate(self.angle_virage_gauche)
-        else:
-            print(f"Plus de clearance à droite (G: {round(distance_left,2)} cm, D: {round(distance_right,2)} cm). Virage à droite.")
-            self.servo_ctrl.rotate(self.angle_virage_droite)
-        time.sleep(self.duree_virage)
-        self.servo_ctrl.setToDegree(self.angle_central)
+        print(f"Obstacle frontal détecté ({round(self.capteur.get_distance_front(),2)} cm).")
+        self.motor_ctrl.stop()
+        self.current_speed = 0.0
+        time.sleep(self.reverse_pause)
+        print("Marche arrière pour dégager l'obstacle frontal...")
+        self.motor_ctrl.backward(-100)
+        self.current_speed = -0.5
+        time.sleep(self.duree_marche_arriere)
         self.motor_ctrl.forward(100)
-        # Accélération progressive jusqu'à la vitesse max
-        self.smooth_accelerate(self.max_speed)
+        self.servo_ctrl.setToDegree(self.angle_central)
+        self.current_speed = self.max_speed  # reprise de la vitesse
 
     def handle_double_side_obstacle(self):
-        """
-        Gère la présence simultanée d'obstacles sur les deux côtés.
-        La voiture recule et, dès qu'un côté se libère, effectue le virage correspondant.
-        """
         print(f"Obstacle double détecté (G: {round(self.capteur.get_distance_left(),2)} cm, D: {round(self.capteur.get_distance_right(),2)} cm).")
-        self.smooth_decelerate(0)
         self.motor_ctrl.backward(-100)
         self.current_speed = 0.0
         time.sleep(self.duree_marche_arriere)
         self.motor_ctrl.forward(100)
         self.servo_ctrl.setToDegree(self.angle_central)
-        self.smooth_accelerate(self.max_speed)
+        self.current_speed = self.max_speed
 
     def handle_left_obstacle(self):
-        """
-        Gère l'évitement d'un obstacle sur le côté gauche.
-        La voiture réduit sa vitesse, effectue un virage à gauche, puis reprend de la vitesse.
-        """
         print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(),2)} cm). Virage à gauche.")
-        self.smooth_decelerate(0.5)
+        # Réduire la vitesse pendant le virage
         self.motor_ctrl.forward(80)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_gauche)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
         self.motor_ctrl.forward(100)
-        self.smooth_accelerate(self.max_speed)
+        self.current_speed = self.max_speed
 
     def handle_right_obstacle(self):
-        """
-        Gère l'évitement d'un obstacle sur le côté droit.
-        La voiture ralentit, effectue un virage à droite, puis reprend sa vitesse.
-        """
         print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(),2)} cm). Virage à droite.")
-        self.smooth_decelerate(0.5)
         self.motor_ctrl.forward(80)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
         self.motor_ctrl.forward(100)
-        self.smooth_accelerate(self.max_speed)
+        self.current_speed = self.max_speed
 
     def cleanup(self):
         self.motor_ctrl.stop()
@@ -225,3 +184,4 @@ class ControllerCar:
         Renvoie la vitesse actuelle du véhicule en m/s.
         """
         return self.current_speed
+
