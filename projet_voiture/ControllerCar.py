@@ -47,7 +47,7 @@ class ControllerCar:
         self.angle_central = 45
 
         # Durées (en secondes)
-        self.duree_virage = 3
+        self.duree_virage = 2
         self.duree_marche_arriere = 1
         self.reverse_pause = 0.5
 
