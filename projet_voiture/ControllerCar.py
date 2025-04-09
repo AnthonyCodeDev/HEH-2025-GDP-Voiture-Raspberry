@@ -38,12 +38,12 @@ class ControllerCar:
 
         # Seuils de détection (en cm)
         self.side_threshold = 15         # Obstacle latéral
-        self.front_threshold = 40        # Obstacle frontal (avertissement)
-        self.emergency_threshold = 40    # Obstacle frontal (urgence)
+        self.front_threshold = 35        # Obstacle frontal (avertissement)
+        self.emergency_threshold = 35    # Obstacle frontal (urgence)
 
         # Paramètres de virage
-        self.angle_virage_gauche = -15
-        self.angle_virage_droite = 15
+        self.angle_virage_gauche = -25
+        self.angle_virage_droite = 25
         self.angle_central = 45
 
         # Durées (en secondes)
