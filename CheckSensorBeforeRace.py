@@ -9,6 +9,9 @@ import sys
 import RPi.GPIO as GPIO
 
 
+import RPi.GPIO as GPIO
+import time
+
 def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(trigger_pin, GPIO.OUT)
@@ -17,29 +20,39 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
     try:
         GPIO.output(trigger_pin, False)
         print("Stabilisation du capteur...")
-        time.sleep(2)
+        time.sleep(2)  # Stabilisation du capteur
 
+        # Envoi de l'impulsion
         GPIO.output(trigger_pin, True)
-        time.sleep(0.00001)
+        time.sleep(0.00001)  # 10 microsecondes
         GPIO.output(trigger_pin, False)
 
+        # Attente de l'écho
+        pulse_start = time.time()
         while GPIO.input(echo_pin) == 0:
-            pulse_start = time.time()
+            pulse_start = time.time()  # Enregistrer l'instant du début de l'écho
 
+        pulse_end = time.time()
         while GPIO.input(echo_pin) == 1:
-            pulse_end = time.time()
+            pulse_end = time.time()  # Enregistrer l'instant de fin de l'écho
 
+        # Calcul de la durée de l'écho
         pulse_duration = pulse_end - pulse_start
-        distance = pulse_duration * 17150
+        distance = pulse_duration * 17150  # Calcul de la distance
         distance = round(distance, 2)
 
-        print(f"Capteur {nom_capteur} : distance = {distance} cm")
+        if distance <= 0 or distance > 400:
+            print(f"Erreur : distance {distance} cm hors de la plage utile pour {nom_capteur}.")
+        else:
+            print(f"Capteur {nom_capteur} : distance = {distance} cm")
 
     except Exception as e:
-        print(f" Erreur capteur {nom_capteur} : {e}")
+        print(f"Erreur capteur {nom_capteur} : {e}")
 
     finally:
-        GPIO.cleanup()
+        GPIO.cleanup()  # Nettoyage des GPIO
+
+
 
 # --- Vérification GPIO moteurs ---
 def test_gpio_moteur(pins):
