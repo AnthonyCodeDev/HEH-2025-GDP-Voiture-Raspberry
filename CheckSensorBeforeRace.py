@@ -90,9 +90,9 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
         for essai in range(max_essais):
             # Envoi de l'impulsion
             GPIO.output(trigger_pin, False)
-            time.sleep(0.002)
+            time.sleep(0.1)
             GPIO.output(trigger_pin, True)
-            time.sleep(0.00001)
+            time.sleep(0.1)
             GPIO.output(trigger_pin, False)
 
             # Attente de l’écho
