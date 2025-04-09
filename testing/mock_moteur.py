@@ -125,8 +125,8 @@ class TestMotorController(unittest.TestCase):
         with self.assertRaises(ValueError):
             controller.backward(50)  # 50 est positif, doit lever ValueError.
 
-    @patch('moteur.GPIO')
-    @patch('moteur.PCA.PWM')
+    @patch('ControllerMotor.GPIO')
+    @patch('ControllerMotor.PCA.PWM')
     def test_check_motor(self, mock_PWM, mock_GPIO):
         """
         Teste que check_motor envoie les bons signaux sur les broches moteur A/B sans activer PWM.
