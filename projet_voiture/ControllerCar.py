@@ -168,35 +168,34 @@ class ControllerCar:
         self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed
 
-    def handle_left_obstacle(self):
-        print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(), 2)} cm). Recul léger, puis virage à droite.")
+    def handle_right_obstacle(self):
+        print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(), 2)} cm). Recul léger, puis virage à gauche.")
         
-        # Étape 1 : Reculer un tout petit peu
-        self.motor_ctrl.backward(self.motor_speed_forwards * 0.5)  # vitesse réduite pour le recul
+        # Étape 1 : Recul léger (vitesse négative)
+        self.motor_ctrl.backward(-self.motor_speed_forwards * 0.5)
         time.sleep(0.3)
         self.motor_ctrl.stop()
 
-        # Étape 2 : Tourner à droite (car l'obstacle est à gauche)
+        # Étape 2 : Tourne à gauche
         self.current_speed = 0.5
-        self.servo_ctrl.rotate(self.angle_virage_droite)
+        self.servo_ctrl.rotate(self.angle_virage_gauche)
         time.sleep(self.duree_virage)
 
         # Étape 3 : Revenir à l'angle central et avancer
         self.servo_ctrl.setToDegree(self.angle_central)
         self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed
-
-    def handle_right_obstacle(self):
-        print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(), 2)} cm). Recul léger, puis virage à gauche.")
+    def handle_left_obstacle(self):
+        print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(), 2)} cm). Recul léger, puis virage à droite.")
         
-        # Étape 1 : Reculer un tout petit peu
-        self.motor_ctrl.backward(self.motor_speed_forwards * 0.5)
+        # Étape 1 : Recul léger (vitesse négative)
+        self.motor_ctrl.backward(-self.motor_speed_forwards * 0.5)
         time.sleep(0.3)
         self.motor_ctrl.stop()
 
-        # Étape 2 : Tourner à gauche (car l'obstacle est à droite)
+        # Étape 2 : Tourne à droite
         self.current_speed = 0.5
-        self.servo_ctrl.rotate(self.angle_virage_gauche)
+        self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
 
         # Étape 3 : Revenir à l'angle central et avancer
