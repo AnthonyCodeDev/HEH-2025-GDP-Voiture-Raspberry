@@ -47,7 +47,7 @@ print(f"✅ Calibration terminée. RGB de base : R={ref_r}, G={ref_g}, B={ref_b}
 print("🕵️ Détection des couleurs en cours...")
 
 # Seuil de détection
-SEUIL = 10
+SEUIL = 5
 
 # Variable pour éviter les répétitions de message "rien de nouveau"
 dernier_etat = None
