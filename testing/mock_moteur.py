@@ -5,7 +5,7 @@ import sys
 import os
 
 # Ajoute le dossier parent au path pour pouvoir importer ControllerMotor
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'projet_voiture')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Projet voiture')))
 from projet_voiture import ControllerMotor
 
 class TestMotorController(unittest.TestCase):
