@@ -47,8 +47,8 @@ class ControllerCar:
         self.angle_central = 45
 
         # Durées (en secondes)
-        self.duree_virage = 3
-        self.duree_marche_arriere = 1
+        self.duree_virage = 1
+        self.duree_marche_arriere = 0.5
         self.reverse_pause = 0.5
 
         # Initialisation du module de capteurs de distance
