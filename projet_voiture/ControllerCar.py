@@ -173,7 +173,7 @@ class ControllerCar:
         
         # Étape 1 : Recul léger (vitesse négative)
         self.motor_ctrl.backward(-self.motor_speed_forwards * 0.5)
-        time.sleep(0.5)
+        time.sleep(1)
         self.motor_ctrl.stop()
 
         # Étape 2 : Tourne à gauche
@@ -190,7 +190,7 @@ class ControllerCar:
         
         # Étape 1 : Recul léger (vitesse négative)
         self.motor_ctrl.backward(-self.motor_speed_forwards * 0.5)
-        time.sleep(0.5)
+        time.sleep(1)
         self.motor_ctrl.stop()
 
         # Étape 2 : Tourne à droite
