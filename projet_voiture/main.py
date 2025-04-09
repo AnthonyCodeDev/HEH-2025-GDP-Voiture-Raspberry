@@ -18,7 +18,6 @@ import adafruit_tcs34725
 
 from CarController import CarController
 from serveur_voiture import app
-# ok
 
 class RGBSensorController:
     """
