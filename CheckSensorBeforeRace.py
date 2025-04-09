@@ -8,8 +8,8 @@ import sys
 
 import RPi.GPIO as GPIO
 
-TRIG_PIN = 23
-ECHO_PIN = 24
+TRIG_PIN = 11
+ECHO_PIN = 9
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIG_PIN, GPIO.OUT)
