@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import MagicMock, call, patch
 
 # On suppose que votre code se trouve dans le fichier 'moteur.py'
-from moteur import MotorController
+from projet_voiture import ControllerMotor
 
 class TestMotorController(unittest.TestCase):
 
@@ -18,7 +18,7 @@ class TestMotorController(unittest.TestCase):
         mock_PWM.return_value = pwm_instance
 
         # Création de l'instance du contrôleur
-        controller = MotorController()
+        controller = ControllerMotor()
 
         # Réinitialisation des historiques de mocks
         mock_GPIO.output.reset_mock()
@@ -54,7 +54,7 @@ class TestMotorController(unittest.TestCase):
         pwm_instance = MagicMock()
         mock_PWM.return_value = pwm_instance
 
-        controller = MotorController()
+        controller = ControllerMotor()
         mock_GPIO.output.reset_mock()
         pwm_instance.write.reset_mock()
 
@@ -87,7 +87,7 @@ class TestMotorController(unittest.TestCase):
         pwm_instance = MagicMock()
         mock_PWM.return_value = pwm_instance
 
-        controller = MotorController()
+        controller = ControllerMotor()
         mock_GPIO.output.reset_mock()
         pwm_instance.write.reset_mock()
 
@@ -119,9 +119,37 @@ class TestMotorController(unittest.TestCase):
         pwm_instance = MagicMock()
         mock_PWM.return_value = pwm_instance
 
-        controller = MotorController()
+        controller = ControllerMotor()
         with self.assertRaises(ValueError):
             controller.backward(50)  # 50 est positif, doit lever ValueError.
+
+    @patch('moteur.GPIO')
+    @patch('moteur.PCA.PWM')
+    def test_check_motor(self, mock_PWM, mock_GPIO):
+        """
+        Teste que check_motor envoie les bons signaux sur les broches moteur A/B sans activer PWM.
+        """
+        pwm_instance = MagicMock()
+        mock_PWM.return_value = pwm_instance
+
+        controller = ControllerMotor()  # instancie ton contrôleur
+
+        # Nettoyer les historiques d'appels
+        mock_GPIO.output.reset_mock()
+
+        # Appel de la méthode à tester
+        result = controller.check_motor()
+
+        # Vérifie que la méthode retourne True
+        self.assertTrue(result)
+
+        # Vérifie que chaque pin reçoit un HIGH suivi d’un LOW
+        expected_calls = []
+        for pin in [17, 18, 27, 22]:  # ordre basé sur __gpio_pins
+            expected_calls.append(call(pin, mock_GPIO.HIGH))
+            expected_calls.append(call(pin, mock_GPIO.LOW))
+
+        mock_GPIO.output.assert_has_calls(expected_calls, any_order=False)
 
 if __name__ == '__main__':
     unittest.main()
