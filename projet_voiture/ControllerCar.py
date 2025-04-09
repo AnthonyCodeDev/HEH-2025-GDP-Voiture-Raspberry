@@ -38,7 +38,7 @@ class ControllerCar:
         if hasattr(self, '_initialized') and self._initialized:
             return
 
-        # Seuils de détection en cm
+        # Seuils de détection (en cm)
         self.side_threshold = 15         # Obstacle latéral
         self.front_threshold = 30        # Obstacle frontal (avertissement)
         self.emergency_threshold = 10    # Obstacle frontal (urgence)
@@ -60,6 +60,10 @@ class ControllerCar:
         self.motor_ctrl = ControllerMotor()
         self.servo_ctrl = ControllerServo()
 
+        # Variable pour stocker la vitesse actuelle (en m/s)
+        # Pour simplifier : 100% de puissance = 1 m/s
+        self.current_speed = 0
+
         self._initialized = True
 
     def run(self):
@@ -67,12 +71,13 @@ class ControllerCar:
         Lance la boucle principale de contrôle autonome de la voiture.
 
         QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
         QUOI : Démarre le mouvement en avant et surveille en continu les mesures des capteurs
                pour déclencher les manœuvres d'évitement en cas d'obstacle.
         """
         print("Démarrage : la voiture avance en ligne droite...")
         self.motor_ctrl.forward(100)
+        # Supposons que 100% de puissance correspond à 1 m/s
+        self.current_speed = 1.0
         self.servo_ctrl.setToDegree(self.angle_central)
 
         try:
@@ -99,7 +104,7 @@ class ControllerCar:
                     self.handle_left_obstacle()
                 elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
-                    
+
                 time.sleep(0.1)
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
@@ -107,12 +112,6 @@ class ControllerCar:
             self.cleanup()
 
     def handle_front_obstacle(self):
-        """
-        Gère l'évitement d'un obstacle frontal.
-
-        QUI : Vergeylen Anthony
-        QUOI : Arrête, recule brièvement et déclenche un virage en fonction des mesures latérales.
-        """
         distance_left = self.capteur.get_distance_left()
         distance_right = self.capteur.get_distance_right()
         print(f"Obstacle frontal détecté ({round(self.capteur.get_distance_front(),2)} cm). Arrêt immédiat.")
@@ -134,12 +133,6 @@ class ControllerCar:
         self.servo_ctrl.setToDegree(self.angle_central)
 
     def handle_double_side_obstacle(self):
-        """
-        Gère la présence simultanée d'obstacles sur les deux côtés.
-
-        QUI : Vergeylen Anthony
-        QUOI : Recule puis effectue un virage selon la disponibilité d'un côté dégagé.
-        """
         print(f"Obstacle double détecté (G: {round(self.capteur.get_distance_left(),2)} cm, D: {round(self.capteur.get_distance_right(),2)} cm). Marche arrière...")
         self.motor_ctrl.backward(-100)
         time.sleep(self.duree_marche_arriere)
@@ -166,53 +159,33 @@ class ControllerCar:
         self.servo_ctrl.setToDegree(self.angle_central)
 
     def handle_left_obstacle(self):
-        """
-        Gère l'évitement d'un obstacle sur le côté gauche.
-
-        QUI : Vergeylen Anthony
-        QUOI : Effectue un virage à gauche.
-        """
         print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(),2)} cm). Virage à gauche.")
         self.servo_ctrl.rotate(self.angle_virage_gauche)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
 
     def handle_right_obstacle(self):
-        """
-        Gère l'évitement d'un obstacle sur le côté droit.
-
-        QUI : Vergeylen Anthony
-        QUOI : Effectue un virage à droite.
-        """
         print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(),2)} cm). Virage à droite.")
         self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
 
     def cleanup(self):
-        """
-        Arrête les moteurs, désactive le PWM du servo et nettoie les GPIO.
-
-        QUI : Vergeylen Anthony
-        QUOI : Libère les ressources et effectue un arrêt propre.
-        """
         self.motor_ctrl.stop()
         self.servo_ctrl.disable_pwm()
         GPIO.cleanup()
         print("Nettoyage des GPIO terminé. La voiture est arrêtée.")
 
     def get_distances(self):
-        """
-        Renvoie un dictionnaire contenant les distances filtrées mesurées par les capteurs gauche, droit et avant.
-
-        :return: dict avec les clés "front", "left" et "right" (en centimètres).
-
-        QUI : Vergeylen Anthony
-        QUOI : Permet d'obtenir les mesures actuelles des capteurs, facilitant leur affichage dans l'interface web.
-        QUAND: 09-04-2025
-        """
         return {
             "front": self.capteur.get_distance_front(),
             "left": self.capteur.get_distance_left(),
             "right": self.capteur.get_distance_right()
         }
+    
+    def get_speed(self):
+        """
+        Renvoie la vitesse actuelle du véhicule en m/s.
+        Pour simplifier, nous supposons que 100% de puissance correspond à 1 m/s.
+        """
+        return self.current_speed if hasattr(self, "current_speed") else 0

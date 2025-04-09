@@ -7,14 +7,13 @@
     <title>Voiture Projet</title>
     <link href="https://fonts.googleapis.com/css?family=Helvetica:300,400,500&display=swap" rel="stylesheet">
     <style>
-        /* Réinitialisation des marges et paddings */
+        /* Réinitialisation */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Style global du body */
         body {
             font-family: 'Helvetica', sans-serif;
             background: linear-gradient(135deg, #2c3e50, #4b79a1);
@@ -25,7 +24,6 @@
             min-height: 100vh;
         }
 
-        /* Conteneur principal */
         .container {
             width: 90%;
             max-width: 900px;
@@ -42,7 +40,6 @@
             margin-bottom: 30px;
         }
 
-        /* Style du formulaire et des boutons */
         form {
             display: flex;
             flex-wrap: wrap;
@@ -59,7 +56,7 @@
             cursor: pointer;
             font-size: 1rem;
             padding: 15px 30px;
-            transition: background-color 0.3s ease, transform 0.3s ease;
+            transition: background-color 0.3s, transform 0.3s;
         }
 
         button:hover {
@@ -67,7 +64,6 @@
             transform: translateY(-2px);
         }
 
-        /* Section d'affichage des distances */
         #distances {
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
@@ -85,7 +81,6 @@
             font-size: 1.2rem;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 600px) {
             h1 {
                 font-size: 2rem;
@@ -120,23 +115,23 @@
             <p>Avant: <span id="front">N/A</span> cm</p>
             <p>Gauche: <span id="left">N/A</span> cm</p>
             <p>Droit: <span id="right">N/A</span> cm</p>
+            <p>Vitesse: <span id="speed">N/A</span> m/s</p>
         </div>
     </div>
 
     <script>
-        function updateDistances() {
+        function updateData() {
             fetch('/api/distances')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('front').textContent = data.front.toFixed(2);
                     document.getElementById('left').textContent = data.left.toFixed(2);
                     document.getElementById('right').textContent = data.right.toFixed(2);
+                    document.getElementById('speed').textContent = data.speed.toFixed(2);
                 })
-                .catch(error => console.error('Erreur lors de la récupération des distances:', error));
+                .catch(error => console.error('Erreur lors de la récupération des données:', error));
         }
-
-        // Mise à jour toutes les 1 seconde
-        setInterval(updateDistances, 1000);
+        setInterval(updateData, 1000);
     </script>
 </body>
 

@@ -7,8 +7,8 @@ Les actions possibles incluent :
   - 'lancer'  : Lancer la voiture en mode autonome via ControllerCar.
   - 'avancer' : Faire avancer la voiture en mode simple via VoitureController.
   - 'reset'   : (Non implémenté pour l'instant)
-  
-De plus, une API est fournie pour obtenir dynamiquement les mesures des capteurs de distance.
+
+De plus, une API est fournie pour obtenir dynamiquement les mesures des capteurs de distance et la vitesse.
 
 Auteur : Anthony Vergeylen
 Date   : 08-04-2025
@@ -20,15 +20,9 @@ import threading
 import time
 from ControllerMotor import ControllerMotor  # Module personnalisé pour contrôler les moteurs
 import RPi.GPIO as GPIO
-from ControllerCar import ControllerCar     # Module de contrôle autonome de la voiture
+from ControllerCar import ControllerCar
 
 class VoitureController:
-    """
-    Classe pour contrôler la voiture en mode basique.
-    
-    QUI: Anthony Vergeylen
-    QUOI: Fournit une méthode pour faire avancer la voiture en ligne droite.
-    """
     def __init__(self, duration=10, speed=100):
         self.duration = duration
         self.speed = speed
@@ -48,12 +42,6 @@ class VoitureController:
             print("Nettoyage des GPIO terminé.")
 
 class VoitureServer:
-    """
-    Classe pour gérer le serveur web de contrôle de la voiture.
-
-    QUI: Anthony Vergeylen
-    QUOI: Permet d'interagir avec la voiture via une interface web ainsi que d'obtenir les mesures des capteurs.
-    """
     def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None):
         self.host = host
         self.port = port
@@ -68,7 +56,6 @@ class VoitureServer:
     def _setup_routes(self):
         self.app.add_url_rule('/', view_func=self.index)
         self.app.add_url_rule('/action', view_func=self.handle_action, methods=['POST'])
-        # Nouvelle route d'API pour obtenir les distances
         self.app.add_url_rule('/api/distances', view_func=self.api_distances, methods=['GET'])
 
     def index(self):
@@ -89,15 +76,15 @@ class VoitureServer:
         return redirect(url_for('index'))
 
     def api_distances(self):
-        """
-        Route API renvoyant les mesures des capteurs de distance au format JSON.
-        
-        QUI: Anthony Vergeylen
-        QUOI: Utilise la méthode get_distances() de ControllerCar pour obtenir et retourner les distances.
-        QUAND: 09-04-2025
-        """
         distances = self.autonomous_controller.get_distances()
-        return jsonify(distances)
+        speed = self.autonomous_controller.get_speed()
+        # Retourne les distances et la vitesse
+        return jsonify({
+            "front": distances["front"],
+            "left": distances["left"],
+            "right": distances["right"],
+            "speed": speed
+        })
 
     def run(self):
         print(f"🌐 Lancement du serveur web sur {self.host}:{self.port}")
