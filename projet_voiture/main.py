@@ -16,6 +16,7 @@ import threading
 from ControllerCar import ControllerCar
 from WebServerCar import VoitureServer
 from CapteurRGB import CapteurRGB
+from LineFollower import LineFollower
 
 class CarLauncher:
     """
@@ -53,6 +54,8 @@ class MainController:
         # Transmet l'instance partagée de ControllerCar au serveur web
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
 
+        self.line_follower = LineFollower()
+
         # Mise en position initiale des roues (45° pour qu'elles soient droites)
         print("🔧 Mise en position initiale des roues (45°).")
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
@@ -82,6 +85,13 @@ class MainController:
         sensor_thread.daemon = True
         sensor_thread.start()
         print("🔎 Surveillance RGB lancée.")
+
+        # Démarrage de la surveillance de ligne noire dans un thread séparé
+        line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
+        line_thread.daemon = True
+        line_thread.start()
+        print("🛣️ Surveillance de ligne lancée.")
+
 
         # Boucle principale pour maintenir le programme actif
         try:
