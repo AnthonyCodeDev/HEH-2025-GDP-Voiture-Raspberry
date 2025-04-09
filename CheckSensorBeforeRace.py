@@ -17,7 +17,7 @@ GPIO.setup(ECHO_PIN, GPIO.IN)
 
 try:
     GPIO.output(TRIG_PIN, False)
-    print("⏳ Stabilisation du capteur...")
+    print("Stabilisation du capteur...")
     time.sleep(2)
 
     GPIO.output(TRIG_PIN, True)
@@ -34,10 +34,10 @@ try:
     distance = pulse_duration * 17150
     distance = round(distance, 2)
 
-    print(f"✅ Capteur Ultrason : distance = {distance} cm")
+    print(f"Capteur Ultrason : distance = {distance} cm")
 
 except Exception as e:
-    print(f"❌ Erreur capteur ultrason : {e}")
+    print(f" Erreur capteur ultrason : {e}")
 
 finally:
     GPIO.cleanup()
@@ -85,7 +85,7 @@ def main():
     print(" Vérification des capteurs à ultrasons...\n")
     """us1_ok = test_ultrason(trigger_pin=23, echo_pin=24, nom_capteur="Ultrason 1")
     us2_ok = test_ultrason(trigger_pin=20, echo_pin=21, nom_capteur="Ultrason 2")
-    us3_ok = test_ultrason(trigger_pin=19, echo_pin=26, nom_capteur="Ultrason 3")"""
+    us3_ok = test_ultrason(trigger_pin=19, echo_pin=26, nom_capteur="Ultrason 3")
 
     if us1_ok and us2_ok and us3_ok:
         print("\n Tous les capteurs ultrasons fonctionnent.")
@@ -99,7 +99,7 @@ def main():
     if all_ok:
         print("\n Tous les capteurs sont prêts pour la course.")
     else:
-        print("\n Des erreurs ont été détectées. Veuillez vérifier les branchements et l'alimentation.")
+        print("\n Des erreurs ont été détectées. Veuillez vérifier les branchements et l'alimentation.")"""
 
 if __name__ == "__main__":
     main()
