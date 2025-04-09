@@ -28,19 +28,11 @@ class CarController:
     Cette classe lit et filtre les mesures des capteurs ultrason,
     et commande les moteurs et le servo pour assurer une navigation fluide
     en évitant les obstacles, que ce soit un mur frontal ou des obstacles latéraux.
-
-    QUI : Vergeylen Anthony
-    QUAND : 08-04-2025
-    QUOI : Initialise et orchestre la gestion des capteurs, moteurs et servo pour éviter les obstacles.
     """
 
     def __init__(self):
         """
         Initialise les capteurs, contrôleurs et paramètres.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Configure les seuils, angles, durées et instancie les capteurs ainsi que les contrôleurs pour la navigation.
         """
         # Paramètres de détection (en cm)
         self.side_threshold = 15         # Seuil latéral : obstacle sur les côtés
@@ -76,10 +68,6 @@ class CarController:
 
         :param sensor: Instance de DistanceSensor.
         :return: Distance moyenne en cm.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Effectue plusieurs mesures du capteur et retourne la moyenne pour réduire le bruit.
         """
         total = 0.0
         for _ in range(self.sensor_sample_count):
@@ -90,10 +78,6 @@ class CarController:
     def run(self):
         """
         Lance la boucle principale de contrôle de la voiture.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Démarre le mouvement en avant et surveille les capteurs pour déclencher les manœuvres d'évitement.
         """
         print("Démarrage : la voiture avance en ligne droite...")
         self.motor_ctrl.forward(100)
@@ -118,7 +102,7 @@ class CarController:
                     time.sleep(self.duree_marche_arriere * 1.5)
                     self.motor_ctrl.forward(100)
                     self.servo_ctrl.setToDegree(self.angle_central)
-
+                
                 # Si le capteur frontal détecte un obstacle (mais non en urgence)
                 elif distance_front < self.front_threshold:
                     self.handle_front_obstacle()
@@ -141,15 +125,11 @@ class CarController:
     def handle_front_obstacle(self):
         """
         Gère l'évitement d'un obstacle frontal.
-
+        
         La voiture s'arrête, effectue une marche arrière, puis choisit la direction offrant le plus de clearance.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Arrête, recule brièvement et déclenche un virage selon les mesures latérales lors d'un obstacle détecté à l'avant.
         """
         # Récupérer les distances latérales
-        distance_left = self.get_filtered_distance(self.sensor_left)
+        distance_left  = self.get_filtered_distance(self.sensor_left)
         distance_right = self.get_filtered_distance(self.sensor_right)
 
         print(f"Obstacle frontal détecté ({round(self.get_filtered_distance(self.sensor_front),2)} cm). Arrêt immédiat.")
@@ -162,7 +142,7 @@ class CarController:
         self.motor_ctrl.forward(100)
 
         # Relecture des distances pour choisir le virage
-        distance_left = self.get_filtered_distance(self.sensor_left)
+        distance_left  = self.get_filtered_distance(self.sensor_left)
         distance_right = self.get_filtered_distance(self.sensor_right)
         if distance_left > distance_right:
             print(f"Plus de clearance à gauche (G: {round(distance_left,2)} cm, D: {round(distance_right,2)} cm). Virage à gauche.")
@@ -177,12 +157,8 @@ class CarController:
     def handle_double_side_obstacle(self):
         """
         Gère la situation où des obstacles sont détectés simultanément sur les deux côtés.
-
+        
         La voiture recule brièvement, attend qu'au moins un côté se libère, puis effectue le virage le plus approprié.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Réagit quand les obstacles latéraux sont présents des deux côtés en reculant et en choisissant un virage adapté.
         """
         print(f"Obstacle double détecté (Gauche: {round(self.get_filtered_distance(self.sensor_left),2)} cm, Droite: {round(self.get_filtered_distance(self.sensor_right),2)} cm). Marche arrière...")
         self.motor_ctrl.backward(-100)
@@ -194,7 +170,7 @@ class CarController:
                self.get_filtered_distance(self.sensor_right) < self.side_threshold):
             time.sleep(0.1)
 
-        distance_left = self.get_filtered_distance(self.sensor_left)
+        distance_left  = self.get_filtered_distance(self.sensor_left)
         distance_right = self.get_filtered_distance(self.sensor_right)
         if distance_left >= self.side_threshold and distance_right < self.side_threshold:
             print(f"Côté gauche dégagé (G: {round(distance_left,2)} cm). Virage à gauche.")
@@ -216,10 +192,6 @@ class CarController:
     def handle_left_obstacle(self):
         """
         Gère l'évitement d'un obstacle détecté sur le côté gauche.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Effectue un virage à gauche en cas de détection d'obstacle latéral gauche.
         """
         print(f"Obstacle détecté sur le côté gauche ({round(self.get_filtered_distance(self.sensor_left),2)} cm). Virage à gauche.")
         self.servo_ctrl.rotate(self.angle_virage_gauche)
@@ -229,10 +201,6 @@ class CarController:
     def handle_right_obstacle(self):
         """
         Gère l'évitement d'un obstacle détecté sur le côté droit.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Effectue un virage à droite en cas de détection d'obstacle latéral droit.
         """
         print(f"Obstacle détecté sur le côté droit ({round(self.get_filtered_distance(self.sensor_right),2)} cm). Virage à droite.")
         self.servo_ctrl.rotate(self.angle_virage_droite)
@@ -242,10 +210,6 @@ class CarController:
     def cleanup(self):
         """
         Arrête les moteurs, désactive le PWM du servo et nettoie les GPIO.
-
-        QUI : Vergeylen Anthony
-        QUAND : 08-04-2025
-        QUOI : Assure la libération des ressources et un arrêt propre du système.
         """
         self.motor_ctrl.stop()
         self.servo_ctrl.disable_pwm()
