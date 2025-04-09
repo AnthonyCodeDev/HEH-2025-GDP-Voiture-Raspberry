@@ -125,7 +125,6 @@ class RGBSensorController:
                 print(f"R: {r}, G: {g}, B: {b} -> Couleur détectée: {couleur}")
                 if couleur == "vert" and not car_launched:
                     print("✅ Couleur verte détectée ! Lancement de la voiture autonome.")
-                    # Lancer le contrôle de la voiture dans un thread séparé
                     car_thread = threading.Thread(target=car_launcher.launch)
                     car_thread.start()
                     car_launched = True
@@ -164,73 +163,44 @@ class CarLauncher:
         self.car_controller.cleanup()
 
 
-
-class WebServer:
+class MainController:
     """
-    Classe pour gérer le lancement du serveur web basé sur Flask.
+    Contrôleur principal orchestrant l'exécution des services:
+    - Détection de couleur via le capteur RGB.
+    - Lancement du contrôle autonome de la voiture.
+    - Hébergement du serveur web.
     
     QUI: Vergeylen Anthony
     QUAND: 09-04-2025
-    QUOI: Lance l'application Flask pour permettre le contrôle via une interface web.
-    """
-    def __init__(self, host='0.0.0.0', port=5000):
-        """
-        Initialise les paramètres d'hébergement du serveur web.
-
-        :param host: Adresse IP à utiliser pour héberger le serveur (par défaut '0.0.0.0').
-        :param port: Port à utiliser pour le serveur (par défaut 5000).
-
-        QUI: Vergeylen Anthony
-        QUAND: 09-04-2025
-        QUOI: Configure l'adresse et le port pour le serveur web.
-        """
-        self.host = host
-        self.port = port
-
-    def run(self):
-        """
-        Démarre l'application Flask sur le host et le port spécifiés.
-
-        QUI: Vergeylen Anthony
-        QUAND: 09-04-2025
-        QUOI: Lance le serveur web pour l'accès via le navigateur.
-        """
-        print(f"🌐 Lancement du serveur web sur {self.host}:{self.port}")
-        # Créer une instance de VoitureServer pour lancer l'application Flask
-        server = VoitureServer(self.host, self.port)
-        server.run()
-class MainController:
-    """
-    Contrôleur principal orchestrant l'exécution des services.
+    QUOI: Initialise et démarre en parallèle l'ensemble des composants du système de contrôle de la voiture.
     """
     def __init__(self):
+        """
+        Initialise les instances des contrôleurs RGB, de la voiture autonome et du serveur web.
+        """
         # Crée une seule instance de CarController
         self.car_controller = CarController()
         self.rgb_sensor = RGBSensorController(threshold=5, integration_time=100, calibration_duration=5)
         self.car_launcher = CarLauncher(self.car_controller)
         # Transmet l'instance partagée à VoitureServer
-        self.web_server = WebServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
+        self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
 
     def start_services(self):
         """
         Démarre l'ensemble des services en les exécutant dans des threads séparés :
-        - Calibration du capteur RGB.
-        - Lancement du serveur web Flask.
-        - Surveillance en continu du capteur RGB pour déclencher la voiture autonome en cas de détection de vert.
+          - Calibration du capteur RGB.
+          - Lancement du serveur web Flask.
+          - Surveillance en continu du capteur RGB pour déclencher la voiture autonome en cas de détection de vert.
         
         La méthode reste active jusqu'à une interruption clavier (CTRL+C), à partir de laquelle elle
         déclenche la fermeture propre des services.
-
-        QUI: Vergeylen Anthony
-        QUAND: 09-04-2025
-        QUOI: Orchestre et démarre les différents composants du système de contrôle de la voiture.
         """
         # Calibration du capteur RGB
         self.rgb_sensor.calibrate()
 
         # Lancer le serveur web dans un thread séparé
         server_thread = threading.Thread(target=self.web_server.run)
-        server_thread.daemon = True  # Ce thread se termine avec le programme principal
+        server_thread.daemon = True
         server_thread.start()
         print("🌐 Serveur web lancé.")
 
@@ -240,7 +210,7 @@ class MainController:
         sensor_thread.start()
         print("🔎 Détecteur RGB lancé.")
 
-        # Boucle principale pour maintenir le programme actif et attendre une interruption
+        # Boucle principale pour maintenir le programme actif
         try:
             while True:
                 time.sleep(1)
@@ -250,12 +220,7 @@ class MainController:
 
     def shutdown_services(self):
         """
-        Arrête et nettoie proprement tous les services en cours d'exécution, incluant
-        l'arrêt de la voiture autonome.
-
-        QUI: Vergeylen Anthony
-        QUAND: 09-04-2025
-        QUOI: Appelle les procédures de fermeture pour arrêter la voiture et nettoyer les ressources.
+        Arrête et nettoie proprement tous les services en cours d'exécution, incluant l'arrêt de la voiture autonome.
         """
         print("🔒 Fermeture des services en cours...")
         self.car_launcher.shutdown()
