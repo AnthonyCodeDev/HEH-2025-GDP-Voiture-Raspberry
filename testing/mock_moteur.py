@@ -3,10 +3,9 @@ import unittest
 from unittest.mock import MagicMock, call, patch
 import sys
 import os
-from projet_voiture import ControllerMotor
 
 # Ajoute le dossier parent au path pour pouvoir importer ControllerMotor
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Projet voiture')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'projet_voiture')))
 
 class TestMotorController(unittest.TestCase):
 
