@@ -95,11 +95,15 @@ def main():
     gpio_ok = test_gpio_moteur([17, 18, 27, 22])
     rgb_ok = test_rgb_sensor()
     
-    print("\n📡 Vérification des capteurs à ultrasons...")
-    us1_ok = test_ultrason("Ultrason 1", trig=11, echo=9)
-    us2_ok = test_ultrason("Ultrason 2", trig=26, echo=19)
-    us3_ok = test_ultrason("Ultrason 3", trig=6, echo=5)
+    print("📡 Vérification des capteurs à ultrasons...\n")
+    us1_ok = test_ultrason(trigger_pin=23, echo_pin=24, nom_capteur="Ultrason 1")
+    us2_ok = test_ultrason(trigger_pin=20, echo_pin=21, nom_capteur="Ultrason 2")
+    us3_ok = test_ultrason(trigger_pin=19, echo_pin=26, nom_capteur="Ultrason 3")
 
+    if us1_ok and us2_ok and us3_ok:
+        print("\n✅ Tous les capteurs ultrasons fonctionnent.")
+    else:
+        print("\n⚠️ Un ou plusieurs capteurs ultrasons ne répondent pas.")
     all_ok = gpio_ok and rgb_ok and us1_ok and us2_ok and us3_ok
     if all_ok:
         print("\n✅ Tous les capteurs sont prêts pour la course.")
