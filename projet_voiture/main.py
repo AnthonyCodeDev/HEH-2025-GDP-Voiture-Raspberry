@@ -162,6 +162,17 @@ class CarLauncher:
         """
         self.car_controller.run()
 
+    def shutdown(self):
+        """
+        Arrête le contrôle autonome de la voiture et réalise les opérations de fermeture (arrêt des moteurs, nettoyage des GPIO, etc.).
+
+        QUI: Vergeylen Anthony
+        QUAND: 09-04-2025
+        QUOI: Stoppe la voiture, désactive les moteurs et nettoie les ressources pour un arrêt propre.
+        """
+        print("🔒 Arrêt de la voiture en cours...")
+        self.car_controller.cleanup()
+
 
 class WebServer:
     """
@@ -223,9 +234,12 @@ class MainController:
     def start_services(self):
         """
         Démarre l'ensemble des services en les exécutant dans des threads séparés :
-        - Calibre le capteur RGB.
-        - Lance le serveur web Flask.
-        - Surveille en continu le capteur RGB pour déclencher la voiture autonome en cas de détection de vert.
+        - Calibration du capteur RGB.
+        - Lancement du serveur web Flask.
+        - Surveillance en continu du capteur RGB pour déclencher la voiture autonome en cas de détection de vert.
+        
+        La méthode reste active jusqu'à une interruption clavier (CTRL+C), à partir de laquelle elle
+        déclenche la fermeture propre des services.
 
         QUI: Vergeylen Anthony
         QUAND: 09-04-2025
@@ -236,7 +250,7 @@ class MainController:
 
         # Lancer le serveur web dans un thread séparé
         server_thread = threading.Thread(target=self.web_server.run)
-        server_thread.daemon = True  # Le thread se termine avec le programme principal
+        server_thread.daemon = True  # Ce thread se termine avec le programme principal
         server_thread.start()
         print("🌐 Serveur web lancé.")
 
@@ -246,12 +260,26 @@ class MainController:
         sensor_thread.start()
         print("🔎 Détecteur RGB lancé.")
 
-        # Boucle principale pour maintenir le programme actif
+        # Boucle principale pour maintenir le programme actif et attendre une interruption
         try:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
             print("🛑 Arrêt du programme principal.")
+            self.shutdown_services()
+
+    def shutdown_services(self):
+        """
+        Arrête et nettoie proprement tous les services en cours d'exécution, incluant
+        l'arrêt de la voiture autonome.
+
+        QUI: Vergeylen Anthony
+        QUAND: 09-04-2025
+        QUOI: Appelle les procédures de fermeture pour arrêter la voiture et nettoyer les ressources.
+        """
+        print("🔒 Fermeture des services en cours...")
+        self.car_launcher.shutdown()
+        print("✅ Services fermés proprement.")
 
 
 if __name__ == '__main__':
