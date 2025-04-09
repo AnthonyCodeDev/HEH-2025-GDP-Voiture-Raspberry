@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-serveur_voiture.py
-------------------
+ServeurWebVoiture.py
+--------------------
 Ce module fournit une interface web via Flask pour contrôler la voiture.
-Les actions possibles incluent la rotation sur place, le réinitialisation et
+Les actions possibles incluent la rotation sur place, la réinitialisation et
 l'avancée de la voiture.
 
 Auteur : Anthony Vergeylen
@@ -16,7 +16,6 @@ import threading
 import time
 from MotorController import MotorController  # Module personnalisé pour contrôler les moteurs
 import RPi.GPIO as GPIO
-
 
 class VoitureController:
     """
@@ -72,7 +71,6 @@ class VoitureController:
         finally:
             GPIO.cleanup()
             print("Nettoyage des GPIO terminé.")
-
 
 class VoitureServer:
     """
@@ -136,7 +134,7 @@ class VoitureServer:
         action = request.form.get('action')
         if action == 'lancer':
             print("🚀 Lancement de la voiture")
-            # Démarrer la rotation sur place dans un thread pour ne pas bloquer le serveur Flask
+            # Exécuter la rotation sur place dans un thread pour ne pas bloquer le serveur
             thread = threading.Thread(target=self.controller.tourner_sur_place)
             thread.start()
         elif action == 'reset':
@@ -149,7 +147,7 @@ class VoitureServer:
 
     def run(self):
         """
-        Démarre le serveur web Flask sur l'adresse et le port spécifiés.
+        Démarre l'application Flask sur l'adresse et le port spécifiés.
         
         QUI: Anthony Vergeylen
         QUAND: 08-04-2025
