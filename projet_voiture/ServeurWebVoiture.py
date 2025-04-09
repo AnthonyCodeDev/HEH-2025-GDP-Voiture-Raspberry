@@ -14,7 +14,7 @@ Quoi   : Permet de contrôler la voiture via une interface web.
 from flask import Flask, render_template, request, redirect, url_for
 import threading
 import time
-from moteur import MotorController  # Module personnalisé pour contrôler les moteurs
+from MotorController import MotorController  # Module personnalisé pour contrôler les moteurs
 import RPi.GPIO as GPIO
 
 
