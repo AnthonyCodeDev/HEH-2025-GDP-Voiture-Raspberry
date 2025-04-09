@@ -151,9 +151,11 @@ class ControllerCar:
         
         if distance_left > distance_right:
             print("Plus d'espace à gauche - virage à gauche")
+            print(f"Distance gauche : {self.angle_virage_gauche} cm")
             self.servo_ctrl.rotate(self.angle_virage_gauche)
         else:
             print("Plus d'espace à droite - virage à droite")
+            print(f"Distance droite : {self.angle_virage_droite} cm")
             self.servo_ctrl.rotate(self.angle_virage_droite)
         
         time.sleep(self.duree_virage)
