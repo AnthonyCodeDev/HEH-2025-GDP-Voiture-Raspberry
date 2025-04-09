@@ -42,10 +42,11 @@ class VoitureController:
             print("Nettoyage des GPIO terminé.")
 
 class VoitureServer:
-    def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None):
+    def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None, car_launcher=None):
         self.host = host
         self.port = port
         self.app = Flask(__name__, template_folder='templates')
+        self.car_launcher = car_launcher
         if autonomous_controller is None:
             self.autonomous_controller = ControllerCar()
         else:
@@ -73,6 +74,9 @@ class VoitureServer:
             print("➡️ Avancer la voiture en mode simple")
             thread = threading.Thread(target=self.basic_controller.lancer_voiture)
             thread.start()
+        elif action == 'arreter':
+            print("🛑 Arrêt demandé via interface web")
+            self.car_launcher.shutdown()
         return redirect(url_for('index'))
 
     def api_distances(self):

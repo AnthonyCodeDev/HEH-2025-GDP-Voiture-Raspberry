@@ -54,7 +54,7 @@ class MainController:
         self.rgb_sensor = CapteurRGB(threshold=5, integration_time=100, calibration_duration=5)
         self.car_launcher = CarLauncher(self.car_controller)
         # Transmet l'instance partagée de ControllerCar au serveur web
-        self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
+        self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller, car_launcher=self.car_launcher)
 
         self.line_follower = LineFollower()
 
