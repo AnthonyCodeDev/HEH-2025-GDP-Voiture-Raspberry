@@ -56,9 +56,8 @@ class MainController:
         # Mise en position initiale des roues (45° pour qu'elles soient droites)
         print("🔧 Mise en position initiale des roues (45°).")
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
-        # attendre 1 seconde pour stabiliser la position et puis libérer le servo
         time.sleep(1)
-        self.car_controller.servo_ctrl.release()
+        self.car_controller.servo_ctrl.disable_pwm()
 
     def start_services(self):
         # Calibration du capteur RGB
