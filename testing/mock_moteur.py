@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import unittest
 from unittest.mock import MagicMock, call, patch
+import sys
+import os
 
-# On suppose que votre code se trouve dans le fichier 'moteur.py'
+# Ajoute le dossier parent au path pour pouvoir importer ControllerMotor
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'projet_voiture')))
 from projet_voiture import ControllerMotor
 
 class TestMotorController(unittest.TestCase):
@@ -135,7 +138,7 @@ class TestMotorController(unittest.TestCase):
         controller = ControllerMotor()  # instancie ton contrôleur
 
         # Nettoyer les historiques d'appels
-        mock_GPIO.output.reset_mock()
+        mock_GPIO.output.reset_mock() 
 
         # Appel de la méthode à tester
         result = controller.check_motor()
