@@ -108,7 +108,7 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
         distance = pulse_duration * 17150
         distance = round(distance, 2)
 
-        if 2 < distance < 400:
+        if 2 < distance < 500:
             print(f"{nom_capteur} : OK (Distance : {distance:.1f} cm)")
             return True
         else:
