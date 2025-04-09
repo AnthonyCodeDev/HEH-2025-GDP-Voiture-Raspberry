@@ -170,7 +170,7 @@ class ControllerCar:
     def handle_left_obstacle(self):
         print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(),2)} cm). Virage à gauche.")
         # Réduire la vitesse pendant le virage
-        self.motor_ctrl.forward(self.motor_speed_forwards - 20)
+        self.motor_ctrl.forward(self.motor_speed_forwards - 0)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_gauche)
         time.sleep(self.duree_virage)
@@ -180,7 +180,7 @@ class ControllerCar:
 
     def handle_right_obstacle(self):
         print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(),2)} cm). Virage à droite.")
-        self.motor_ctrl.forward(self.motor_speed_forwards - 20)
+        self.motor_ctrl.forward(self.motor_speed_forwards - 0)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
