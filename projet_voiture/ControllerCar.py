@@ -42,12 +42,12 @@ class ControllerCar:
         self.emergency_threshold = 35    # Obstacle frontal (urgence)
 
         # Paramètres de virage
-        self.angle_virage_gauche = -30
-        self.angle_virage_droite = 30
+        self.angle_virage_gauche = -34
+        self.angle_virage_droite = 34
         self.angle_central = 45
 
         # Durées (en secondes)
-        self.duree_virage = 0.45
+        self.duree_virage = 0.5
         self.duree_marche_arriere = 0.35
         self.reverse_pause = 0.5
 
