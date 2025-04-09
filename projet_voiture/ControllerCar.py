@@ -110,8 +110,6 @@ class ControllerCar:
                 elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
 
-                time.sleep(0.1)  # Délai pour éviter une boucle trop rapide
-
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
         finally:
@@ -123,7 +121,7 @@ class ControllerCar:
         print(f"URGENCE! Obstacle frontal très proche ({round(distance_front,2)} cm).")
         self.motor_ctrl.stop()
         self.current_speed = 0.0
-        time.sleep(0.5)
+        time.sleep(0.1)
         self.motor_ctrl.backward(-self.motor_speed_backwards)
         self.current_speed = -0.5  # vitesse de recul simulée
         time.sleep(self.duree_marche_arriere * 1.5)
