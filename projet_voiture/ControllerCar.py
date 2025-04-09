@@ -95,7 +95,7 @@ class ControllerCar:
                 distance_left  = self.capteur.get_distance_left()
                 distance_right = self.capteur.get_distance_right()
 
-                print(f"Distances -> Avant: {round(distance_front,2)} cm, Gauche: {round(distance_left,2)} cm, Droite: {round(distance_right,2)} cm, Vitesse: {round(self.current_speed,2)} m/s")
+                print(f"Distances -> Avant: {round(distance_front,2)} cm, Gauche: {round(distance_left,2)} cm, Droite: {round(distance_right,2)} cm")
 
                 # Gestion des différents cas
                 if distance_front < self.emergency_threshold:
