@@ -96,16 +96,7 @@ class ControllerCar:
 
                 # Gestion des différents cas
                 if distance_front < self.emergency_threshold:
-                    print(f"URGENCE! Obstacle frontal très proche ({round(distance_front,2)} cm).")
-                    self.motor_ctrl.stop()
-                    self.current_speed = 0.0
-                    time.sleep(0.5)
-                    self.motor_ctrl.backward(-100)
-                    self.current_speed = -0.5  # vitesse de recul simulée
-                    time.sleep(self.duree_marche_arriere * 1.5)
-                    self.motor_ctrl.forward(100)
-                    self.servo_ctrl.setToDegree(self.angle_central)
-                    self.current_speed = self.max_speed  # reprise de la vitesse
+                    self.handle_emergency_obstacle()
                 elif distance_front < self.front_threshold:
                     self.handle_front_obstacle()
                 elif distance_left < self.side_threshold and distance_right < self.side_threshold:
@@ -121,10 +112,24 @@ class ControllerCar:
         finally:
             self.cleanup()
 
+    def handle_emergency_obstacle(self):
+        """Gère un obstacle frontal en situation d'urgence."""
+        distance_front = self.capteur.get_distance_front()
+        print(f"URGENCE! Obstacle frontal très proche ({round(distance_front,2)} cm).")
+        self.motor_ctrl.stop()
+        self.current_speed = 0.0
+        time.sleep(0.5)
+        self.motor_ctrl.backward(-100)
+        self.current_speed = -0.5  # vitesse de recul simulée
+        time.sleep(self.duree_marche_arriere * 1.5)
+        self.turn_to_most_space()
+        self.motor_ctrl.forward(100)
+        self.current_speed = self.max_speed  # reprise de la vitesse
+
     def handle_front_obstacle(self):
-        distance_left = self.capteur.get_distance_left()
-        distance_right = self.capteur.get_distance_right()
-        print(f"Obstacle frontal détecté ({round(self.capteur.get_distance_front(),2)} cm).")
+        """Gère un obstacle frontal en reculant et en tournant vers le côté le plus dégagé."""
+        distance_front = self.capteur.get_distance_front()
+        print(f"Obstacle frontal détecté ({round(distance_front,2)} cm).")
         self.motor_ctrl.stop()
         self.current_speed = 0.0
         time.sleep(self.reverse_pause)
@@ -132,17 +137,32 @@ class ControllerCar:
         self.motor_ctrl.backward(-100)
         self.current_speed = -0.5
         time.sleep(self.duree_marche_arriere)
+        self.turn_to_most_space()
         self.motor_ctrl.forward(100)
-        self.servo_ctrl.setToDegree(self.angle_central)
         self.current_speed = self.max_speed  # reprise de la vitesse
+
+    def turn_to_most_space(self):
+        """Tourne vers le côté où il y a le plus d'espace disponible."""
+        distance_left = self.capteur.get_distance_left()
+        distance_right = self.capteur.get_distance_right()
+        
+        if distance_left > distance_right:
+            print("Plus d'espace à gauche - virage à gauche")
+            self.servo_ctrl.rotate(self.angle_virage_gauche)
+        else:
+            print("Plus d'espace à droite - virage à droite")
+            self.servo_ctrl.rotate(self.angle_virage_droite)
+        
+        time.sleep(self.duree_virage)
+        self.servo_ctrl.setToDegree(self.angle_central)
 
     def handle_double_side_obstacle(self):
         print(f"Obstacle double détecté (G: {round(self.capteur.get_distance_left(),2)} cm, D: {round(self.capteur.get_distance_right(),2)} cm).")
         self.motor_ctrl.backward(-100)
         self.current_speed = 0.0
         time.sleep(self.duree_marche_arriere)
+        self.turn_to_most_space()
         self.motor_ctrl.forward(100)
-        self.servo_ctrl.setToDegree(self.angle_central)
         self.current_speed = self.max_speed
 
     def handle_left_obstacle(self):
@@ -184,4 +204,3 @@ class ControllerCar:
         Renvoie la vitesse actuelle du véhicule en m/s.
         """
         return self.current_speed
-
