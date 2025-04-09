@@ -6,42 +6,6 @@ import adafruit_tcs34725
 from gpiozero import DistanceSensor
 import sys
 
-import RPi.GPIO as GPIO
-
-TRIG_PIN = 11
-ECHO_PIN = 9
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(TRIG_PIN, GPIO.OUT)
-GPIO.setup(ECHO_PIN, GPIO.IN)
-
-try:
-    GPIO.output(TRIG_PIN, False)
-    print("Stabilisation du capteur...")
-    time.sleep(2)
-
-    GPIO.output(TRIG_PIN, True)
-    time.sleep(0.00001)
-    GPIO.output(TRIG_PIN, False)
-
-    while GPIO.input(ECHO_PIN) == 0:
-        pulse_start = time.time()
-
-    while GPIO.input(ECHO_PIN) == 1:
-        pulse_end = time.time()
-
-    pulse_duration = pulse_end - pulse_start
-    distance = pulse_duration * 17150
-    distance = round(distance, 2)
-
-    print(f"Capteur Ultrason : distance = {distance} cm")
-
-except Exception as e:
-    print(f" Erreur capteur ultrason : {e}")
-
-finally:
-    GPIO.cleanup()
-
 # --- Vérification GPIO moteurs ---
 def test_gpio_moteur(pins):
     try:
@@ -81,25 +45,6 @@ def main():
 
     gpio_ok = test_gpio_moteur([17, 18, 27, 22])
     rgb_ok = test_rgb_sensor()
-    
-    print(" Vérification des capteurs à ultrasons...\n")
-    """us1_ok = test_ultrason(trigger_pin=23, echo_pin=24, nom_capteur="Ultrason 1")
-    us2_ok = test_ultrason(trigger_pin=20, echo_pin=21, nom_capteur="Ultrason 2")
-    us3_ok = test_ultrason(trigger_pin=19, echo_pin=26, nom_capteur="Ultrason 3")
-
-    if us1_ok and us2_ok and us3_ok:
-        print("\n Tous les capteurs ultrasons fonctionnent.")
-    else:
-        print("\n Un ou plusieurs capteurs ultrasons ne répondent pas.")
-    if us1_ok and us2_ok and us3_ok:
-        print("\n Tous les capteurs ultrasons fonctionnent.")
-    else:
-        print("\n Un ou plusieurs capteurs ultrasons ne répondent pas.")
-    all_ok = gpio_ok and rgb_ok and us1_ok and us2_ok and us3_ok
-    if all_ok:
-        print("\n Tous les capteurs sont prêts pour la course.")
-    else:
-        print("\n Des erreurs ont été détectées. Veuillez vérifier les branchements et l'alimentation.")"""
 
 if __name__ == "__main__":
     main()
