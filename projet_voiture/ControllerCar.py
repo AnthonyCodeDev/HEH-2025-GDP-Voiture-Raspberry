@@ -66,6 +66,9 @@ class ControllerCar:
 
         self._initialized = True
 
+        self.motor_speed_forwards = 50
+        self.motor_speed_backwards = 50
+
     def run(self):
         """
         Lance la boucle principale de contrôle autonome de la voiture.
@@ -75,7 +78,7 @@ class ControllerCar:
                et adapte la vitesse en fonction des conditions (obstacles, virages, etc.).
         """
         print("Démarrage : la voiture avance en ligne droite...")
-        self.motor_ctrl.forward(100)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = 0.0
         self.servo_ctrl.setToDegree(self.angle_central)
 
@@ -119,11 +122,11 @@ class ControllerCar:
         self.motor_ctrl.stop()
         self.current_speed = 0.0
         time.sleep(0.5)
-        self.motor_ctrl.backward(-100)
+        self.motor_ctrl.backward(-self.motor_speed_backwards)
         self.current_speed = -0.5  # vitesse de recul simulée
         time.sleep(self.duree_marche_arriere * 1.5)
         self.turn_to_most_space()
-        self.motor_ctrl.forward(100)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed  # reprise de la vitesse
 
     def handle_front_obstacle(self):
@@ -134,11 +137,11 @@ class ControllerCar:
         self.current_speed = 0.0
         time.sleep(self.reverse_pause)
         print("Marche arrière pour dégager l'obstacle frontal...")
-        self.motor_ctrl.backward(-100)
+        self.motor_ctrl.backward(-self.motor_speed_backwards)
         self.current_speed = -0.5
         time.sleep(self.duree_marche_arriere)
         self.turn_to_most_space()
-        self.motor_ctrl.forward(100)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed  # reprise de la vitesse
 
     def turn_to_most_space(self):
@@ -158,32 +161,32 @@ class ControllerCar:
 
     def handle_double_side_obstacle(self):
         print(f"Obstacle double détecté (G: {round(self.capteur.get_distance_left(),2)} cm, D: {round(self.capteur.get_distance_right(),2)} cm).")
-        self.motor_ctrl.backward(-100)
+        self.motor_ctrl.backward(-self.motor_speed_backwards)
         self.current_speed = 0.0
         time.sleep(self.duree_marche_arriere)
         self.turn_to_most_space()
-        self.motor_ctrl.forward(100)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed
 
     def handle_left_obstacle(self):
         print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(),2)} cm). Virage à gauche.")
         # Réduire la vitesse pendant le virage
-        self.motor_ctrl.forward(80)
+        self.motor_ctrl.forward(self.motor_speed_forwards - 20)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_gauche)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
-        self.motor_ctrl.forward(100)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed
 
     def handle_right_obstacle(self):
         print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(),2)} cm). Virage à droite.")
-        self.motor_ctrl.forward(80)
+        self.motor_ctrl.forward(self.motor_speed_forwards - 20)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
         self.servo_ctrl.setToDegree(self.angle_central)
-        self.motor_ctrl.forward(100)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed
 
     def cleanup(self):
