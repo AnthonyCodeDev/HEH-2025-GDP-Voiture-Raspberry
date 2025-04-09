@@ -15,12 +15,10 @@ En cas d'interruption clavier (Ctrl+C), les moteurs s'arrêtent, le servo est d�
 """
 
 import time
-from gpiozero import DistanceSensor, DistanceSensorNoEcho
+from gpiozero import DistanceSensor
 from moteur import MotorController
 from servo_controller import ServoController
 import RPi.GPIO as GPIO
-import warnings
-warnings.filterwarnings("error", category=DistanceSensorNoEcho)
 
 
 class CarController:
@@ -64,32 +62,30 @@ class CarController:
         self.sensor_sample_delay = 0.01  # Délai entre les lectures (en secondes)
 
         # Initialisation des capteurs ultrason
-        self.sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=4, queue_len=1)
-        self.sensor_right = DistanceSensor(trigger=11, echo=9, max_distance=4, queue_len=1)
-        self.sensor_front = DistanceSensor(trigger=6, echo=5, max_distance=4, queue_len=1)
-
+        self.sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=4)
+        self.sensor_right = DistanceSensor(trigger=11, echo=9, max_distance=4)
+        self.sensor_front = DistanceSensor(trigger=6, echo=5, max_distance=4)
 
         # Initialisation des contrôleurs de moteurs et de servo
         self.motor_ctrl = MotorController()
         self.servo_ctrl = ServoController()
 
-    def get_filtered_distance(self, sensor, sensor_name=""):
+    def get_filtered_distance(self, sensor):
         """
-        Retourne la distance moyenne mesurée par un capteur après filtrage, ou None si capteur muet.
+        Retourne la distance moyenne mesurée par un capteur après filtrage.
 
         :param sensor: Instance de DistanceSensor.
-        :param sensor_name: Nom du capteur pour debug (ex: "Avant", "Gauche", "Droite")
-        :return: Distance moyenne en cm ou None si erreur.
+        :return: Distance moyenne en cm.
+
+        QUI : Vergeylen Anthony
+        QUAND : 08-04-2025
+        QUOI : Effectue plusieurs mesures du capteur et retourne la moyenne pour réduire le bruit.
         """
         total = 0.0
-        try:
-            for _ in range(self.sensor_sample_count):
-                total += sensor.distance
-                time.sleep(self.sensor_sample_delay)
-            return (total / self.sensor_sample_count) * 100
-        except DistanceSensorNoEcho:
-            print(f"\033[91m[ERREUR] Aucun écho reçu pour le capteur {sensor_name} (peut-être mal branché ?)\033[0m")
-            return None
+        for _ in range(self.sensor_sample_count):
+            total += sensor.distance  # gpiozero retourne la distance en mètres
+            time.sleep(self.sensor_sample_delay)
+        return (total / self.sensor_sample_count) * 100
 
     def run(self):
         """
