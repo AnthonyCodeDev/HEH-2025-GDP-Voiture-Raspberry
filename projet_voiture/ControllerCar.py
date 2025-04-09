@@ -109,7 +109,7 @@ class ControllerCar:
                 elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
 
-                time.sleep(0.1)
+                time.sleep(0.01)
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
         finally:
