@@ -56,7 +56,7 @@ class MainController:
         # Transmet l'instance partagée de ControllerCar au serveur web
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller, car_launcher=self.car_launcher)
 
-        self.line_follower = LineFollower()
+        # self.line_follower = LineFollower()
 
         # Mise en position initiale des roues (45° pour qu'elles soient droites)
         print("🔧 Mise en position initiale des roues (45°).")
