@@ -19,6 +19,8 @@ from gpiozero import DistanceSensor, DistanceSensorNoEcho
 from moteur import MotorController
 from servo_controller import ServoController
 import RPi.GPIO as GPIO
+import warnings
+warnings.filterwarnings("error", category=DistanceSensorNoEcho)
 
 
 class CarController:
@@ -81,7 +83,7 @@ class CarController:
         total = 0.0
         try:
             for _ in range(self.sensor_sample_count):
-                total += sensor.distance  # gpiozero retourne en mètres
+                total += sensor.distance
                 time.sleep(self.sensor_sample_delay)
             return (total / self.sensor_sample_count) * 100
         except DistanceSensorNoEcho:
