@@ -154,4 +154,4 @@ class TestMotorController(unittest.TestCase):
         mock_GPIO.output.assert_has_calls(expected_calls, any_order=False)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.test_check_motor(defaultTest='TestMotorController.test_check_motor')
