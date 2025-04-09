@@ -89,10 +89,10 @@ class MainController:
         print("🔎 Surveillance RGB lancée.")
 
         # Démarrage de la surveillance de ligne noire dans un thread séparé
-        line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
-        line_thread.daemon = True
-        line_thread.start()
-        print("🛣️ Surveillance de ligne lancée.")
+        # line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
+        # line_thread.daemon = True
+        # line_thread.start()
+        # print("🛣️ Surveillance de ligne lancée.")
 
 
         # Boucle principale pour maintenir le programme actif
