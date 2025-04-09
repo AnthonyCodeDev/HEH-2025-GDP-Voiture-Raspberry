@@ -16,8 +16,8 @@ En cas d'interruption clavier (Ctrl+C), les moteurs s'arrÃªtent, le servo est dÃ
 
 import time
 from gpiozero import DistanceSensor
-from moteur import MotorController
-from servo_controller import ServoController
+from MotorController import MotorController
+from ServoController import ServoController
 import RPi.GPIO as GPIO
 
 

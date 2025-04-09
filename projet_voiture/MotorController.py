@@ -1,6 +1,6 @@
 import RPi.GPIO as GPIO
 import time
-import PCA9685 as PCA
+import PWM as PCA
 
 class MotorController:
     """
