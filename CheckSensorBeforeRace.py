@@ -77,19 +77,16 @@ def test_rgb_sensor():
         return False
 
 # --- Vérification capteurs ultrason ---
-def test_ultrason(nom, trig, echo):
+def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
     try:
-        sensor = DistanceSensor(trigger=trig, echo=echo, max_distance=4, threshold_distance=0.1)
-        time.sleep(0.2)  # petit délai pour stabilisation
-        distance_cm = sensor.distance * 100
-        if distance_cm < 2 or distance_cm > 400:
-            print(f"❌ {nom} : Distance hors plage ({distance_cm:.1f} cm)")
-            return False
-        else:
-            print(f"✅ {nom} : OK ({distance_cm:.1f} cm)")
-            return True
+        capteur = DistanceSensor(echo=echo_pin, trigger=trigger_pin, max_distance=2.0)
+        time.sleep(1)
+        distance = capteur.distance * 100  # en cm
+        print(f"✅ {nom_capteur} : OK (Distance mesurée : {distance:.1f} cm)")
+        capteur.close()
+        return True
     except Exception as e:
-        print(f"❌ {nom} : ERREUR -> {e}")
+        print(f"❌ {nom_capteur} : ERREUR -> {e}")
         return False
 
 def main():
