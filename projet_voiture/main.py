@@ -20,7 +20,7 @@ from CapteurRGB import CapteurRGB
 class CarLauncher:
     """
     Classe pour lancer le contrôle autonome de la voiture.
-    
+
     QUI: Vergeylen Anthony
     QUOI: Utilise une instance existante de ControllerCar pour démarrer le contrôle autonome.
     """
@@ -40,7 +40,7 @@ class MainController:
     - Surveillance du capteur RGB (via CapteurRGB.py).
     - Lancement du contrôle autonome de la voiture.
     - Hébergement du serveur web.
-    
+
     QUI: Vergeylen Anthony
     QUOI: Initialise et démarre en parallèle l'ensemble des composants du système.
     """
@@ -53,10 +53,9 @@ class MainController:
         # Transmet l'instance partagée de ControllerCar au serveur web
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
 
-        # Mise en position initiale des roues (45° pour qu'elles soient droites), puis libération du PWM
+        # Mise en position initiale des roues (45° pour qu'elles soient droites)
         print("🔧 Mise en position initiale des roues (45°).")
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
-        self.car_controller.servo_ctrl.disable_pwm()  # Libère le servo après positionnement
 
     def start_services(self):
         # Calibration du capteur RGB
