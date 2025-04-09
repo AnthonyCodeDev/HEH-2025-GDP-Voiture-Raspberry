@@ -16,6 +16,11 @@
             margin: 10px;
             padding: 10px 20px;
         }
+
+        #distances {
+            margin-top: 30px;
+            font-size: 20px;
+        }
     </style>
 </head>
 
@@ -26,6 +31,29 @@
         <button type="submit" name="action" value="reset">Réinitialiser et relancer</button><br>
         <button type="submit" name="action" value="avancer">Faire avancer la voiture</button>
     </form>
+
+    <div id="distances">
+        <h2>Mesures des capteurs</h2>
+        <p>Avant: <span id="front">N/A</span> cm</p>
+        <p>Gauche: <span id="left">N/A</span> cm</p>
+        <p>Droit: <span id="right">N/A</span> cm</p>
+    </div>
+
+    <script>
+        function updateDistances() {
+            fetch('/api/distances')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('front').textContent = data.front.toFixed(2);
+                    document.getElementById('left').textContent = data.left.toFixed(2);
+                    document.getElementById('right').textContent = data.right.toFixed(2);
+                })
+                .catch(error => console.error('Erreur lors de la récupération des distances:', error));
+        }
+
+        // Met à jour toutes les 1 seconde
+        setInterval(updateDistances, 1000);
+    </script>
 </body>
 
 </html>

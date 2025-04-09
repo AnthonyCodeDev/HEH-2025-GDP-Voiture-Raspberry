@@ -7,13 +7,15 @@ Les actions possibles incluent :
   - 'lancer'  : Lancer la voiture en mode autonome via ControllerCar.
   - 'avancer' : Faire avancer la voiture en mode simple via VoitureController.
   - 'reset'   : (Non implémenté pour l'instant)
+  
+De plus, une API est fournie pour obtenir dynamiquement les mesures des capteurs de distance.
 
 Auteur : Anthony Vergeylen
 Date   : 08-04-2025
-Quoi   : Permet de contrôler la voiture via une interface web.
+Quoi   : Permet de contrôler la voiture via une interface web et d'accéder aux mesures des capteurs.
 """
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import threading
 import time
 from ControllerMotor import ControllerMotor  # Module personnalisé pour contrôler les moteurs
@@ -25,24 +27,14 @@ class VoitureController:
     Classe pour contrôler la voiture en mode basique.
     
     QUI: Anthony Vergeylen
-    QUAND: 08-04-2025
     QUOI: Fournit une méthode pour faire avancer la voiture en ligne droite.
     """
     def __init__(self, duration=10, speed=100):
-        """
-        Initialise le contrôleur de la voiture en mode simple.
-
-        :param duration: Durée pendant laquelle la voiture avance (par défaut : 10 secondes).
-        :param speed: Vitesse de la voiture (entre 0 et 100, par défaut : 100).
-        """
         self.duration = duration
         self.speed = speed
         self.motor = ControllerMotor()
 
     def lancer_voiture(self):
-        """
-        Lance la voiture en la faisant avancer en ligne droite pendant une durée fixée.
-        """
         try:
             print("🚀 Lancement de la voiture en mode avance (simple)...")
             self.motor.forward(self.speed)
@@ -60,17 +52,9 @@ class VoitureServer:
     Classe pour gérer le serveur web de contrôle de la voiture.
 
     QUI: Anthony Vergeylen
-    QUAND: 08-04-2025
-    QUOI: Permet d'interagir avec la voiture via une interface web en utilisant une instance partagée de ControllerCar.
+    QUOI: Permet d'interagir avec la voiture via une interface web ainsi que d'obtenir les mesures des capteurs.
     """
     def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None):
-        """
-        Initialise le serveur web et configure les routes Flask.
-
-        :param host: Adresse IP pour héberger le serveur (par défaut : '0.0.0.0').
-        :param port: Port pour le serveur (par défaut : 5000).
-        :param autonomous_controller: Instance partagée de ControllerCar à utiliser.
-        """
         self.host = host
         self.port = port
         self.app = Flask(__name__, template_folder='templates')
@@ -82,27 +66,15 @@ class VoitureServer:
         self._setup_routes()
 
     def _setup_routes(self):
-        """
-        Configure les routes pour l'application Flask.
-        """
         self.app.add_url_rule('/', view_func=self.index)
         self.app.add_url_rule('/action', view_func=self.handle_action, methods=['POST'])
+        # Nouvelle route d'API pour obtenir les distances
+        self.app.add_url_rule('/api/distances', view_func=self.api_distances, methods=['GET'])
 
     def index(self):
-        """
-        Affiche la page d'accueil contenant l'interface web.
-        """
         return render_template('web.html')
 
     def handle_action(self):
-        """
-        Traite les actions envoyées via le formulaire web.
-        
-        Les actions gérées sont :
-          - 'lancer' : Lance la voiture en mode autonome via ControllerCar.
-          - 'reset'  : (Non implémenté) Réinitialiser et relancer la voiture.
-          - 'avancer': Fait avancer la voiture en mode simple via VoitureController.
-        """
         action = request.form.get('action')
         if action == 'lancer':
             print("🚀 Lancement de la voiture en mode autonome")
@@ -116,13 +88,20 @@ class VoitureServer:
             thread.start()
         return redirect(url_for('index'))
 
+    def api_distances(self):
+        """
+        Route API renvoyant les mesures des capteurs de distance au format JSON.
+        
+        QUI: Anthony Vergeylen
+        QUOI: Utilise la méthode get_distances() de ControllerCar pour obtenir et retourner les distances.
+        QUAND: 09-04-2025
+        """
+        distances = self.autonomous_controller.get_distances()
+        return jsonify(distances)
+
     def run(self):
-        """
-        Démarre l'application Flask sur l'adresse et le port spécifiés.
-        """
         print(f"🌐 Lancement du serveur web sur {self.host}:{self.port}")
         self.app.run(host=self.host, port=self.port)
-
 
 if __name__ == '__main__':
     server = VoitureServer()

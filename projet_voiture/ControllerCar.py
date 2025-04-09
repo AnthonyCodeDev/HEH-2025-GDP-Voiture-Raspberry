@@ -200,3 +200,19 @@ class ControllerCar:
         self.servo_ctrl.disable_pwm()
         GPIO.cleanup()
         print("Nettoyage des GPIO terminé. La voiture est arrêtée.")
+
+    def get_distances(self):
+        """
+        Renvoie un dictionnaire contenant les distances filtrées mesurées par les capteurs gauche, droit et avant.
+
+        :return: dict avec les clés "front", "left" et "right" (en centimètres).
+
+        QUI : Vergeylen Anthony
+        QUOI : Permet d'obtenir les mesures actuelles des capteurs, facilitant leur affichage dans l'interface web.
+        QUAND: 09-04-2025
+        """
+        return {
+            "front": self.capteur.get_distance_front(),
+            "left": self.capteur.get_distance_left(),
+            "right": self.capteur.get_distance_right()
+        }
