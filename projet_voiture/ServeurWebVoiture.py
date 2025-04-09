@@ -3,8 +3,10 @@
 ServeurWebVoiture.py
 --------------------
 Ce module fournit une interface web via Flask pour contrôler la voiture.
-Les actions possibles incluent la rotation sur place, la réinitialisation et
-l'avancée de la voiture.
+Les actions possibles incluent :
+  - 'lancer'  : Lancer la voiture en mode autonome via CarController (contrôle complet de la navigation).
+  - 'avancer' : Faire avancer la voiture en mode basique (commandé par VoitureController).
+  - 'reset'   : Réinitialisation et relancement (non implémenté pour l'instant).
 
 Auteur : Anthony Vergeylen
 Date   : 08-04-2025
@@ -16,58 +18,49 @@ import threading
 import time
 from MotorController import MotorController  # Module personnalisé pour contrôler les moteurs
 import RPi.GPIO as GPIO
+from CarController import CarController     # Module de contrôle autonome de la voiture
 
 class VoitureController:
     """
-    Classe pour contrôler les mouvements de la voiture.
+    Classe pour contrôler la voiture en mode basique.
     
     QUI: Anthony Vergeylen
     QUAND: 08-04-2025
-    QUOI: Fournit des méthodes pour manipuler la voiture, notamment la rotation sur place.
+    QUOI: Fournit une méthode pour faire avancer la voiture en ligne droite.
     """
     def __init__(self, duration=10, speed=100):
         """
-        Initialise le contrôleur de la voiture.
+        Initialise le contrôleur de la voiture en mode simple.
         
-        :param duration: Durée de la rotation en secondes (par défaut : 10).
-        :param speed: Vitesse de rotation (entre 0 et 100, par défaut : 100).
+        :param duration: Durée pendant laquelle la voiture avance (par défaut : 10 secondes).
+        :param speed: Vitesse de la voiture (entre 0 et 100, par défaut : 100).
         
         QUI: Anthony Vergeylen
         QUAND: 08-04-2025
-        QUOI: Prépare l'instance pour contrôler les moteurs de la voiture.
+        QUOI: Prépare le contrôleur basique pour envoyer les commandes moteurs.
         """
         self.duration = duration
         self.speed = speed
         self.motor = MotorController()
 
-    def tourner_sur_place(self):
+    def lancer_voiture(self):
         """
-        Fait tourner la voiture sur elle-même pendant la durée spécifiée.
+        Lance la voiture en la faisant avancer en ligne droite pendant une durée fixée.
         
         QUI: Anthony Vergeylen
         QUAND: 08-04-2025
-        QUOI: Active les moteurs pour faire tourner la voiture sur elle-même, puis arrête le mouvement.
+        QUOI: Active la commande de la voiture pour avancer (via MotorController.forward),
+              puis arrête la voiture après la durée définie.
         """
         try:
-            print("🔁 Rotation sur place...")
-            # Calcul de la valeur PWM en fonction de la vitesse
-            pwm_val = self.motor._MotorController__scale_speed(self.speed)
-            # Faire tourner la voiture : un moteur en avant et l'autre en arrière
-            self.motor._MotorController__apply_motor_state(
-                self.motor._MotorController__moteur0_pin_a,
-                self.motor._MotorController__moteur0_pin_b,
-                pwm_val
-            )
-            self.motor._MotorController__apply_motor_state(
-                self.motor._MotorController__moteur1_pin_a,
-                self.motor._MotorController__moteur1_pin_b,
-                -pwm_val
-            )
+            print("🚀 Lancement de la voiture en mode avance...")
+            # On suppose ici que MotorController possède une méthode forward(speed)
+            self.motor.forward(self.speed)
             time.sleep(self.duration)
-            print("🛑 Arrêt du mouvement")
+            print("🛑 Arrêt de la voiture")
             self.motor.stop()
         except Exception as e:
-            print("Erreur pendant la rotation :", e)
+            print("Erreur lors du lancement de la voiture (mode avance):", e)
         finally:
             GPIO.cleanup()
             print("Nettoyage des GPIO terminé.")
@@ -89,12 +82,15 @@ class VoitureServer:
         
         QUI: Anthony Vergeylen
         QUAND: 08-04-2025
-        QUOI: Prépare l'application Flask et associe les routes aux actions du contrôleur de la voiture.
+        QUOI: Prépare l'application Flask, associe les routes aux actions et instancie les contrôleurs.
         """
         self.host = host
         self.port = port
-        self.app = Flask(__name__)
-        self.controller = VoitureController()
+        self.app = Flask(__name__, template_folder='templates')
+        # Contrôleur pour la commande basique (avancer)
+        self.basic_controller = VoitureController()
+        # Contrôleur autonome importé depuis CarController
+        self.autonomous_controller = CarController()
         self._setup_routes()
 
     def _setup_routes(self):
@@ -123,9 +119,9 @@ class VoitureServer:
         Traite les actions envoyées via le formulaire web.
         
         Les actions gérées sont :
-          - 'lancer' : Lancer la rotation sur place dans un thread séparé.
+          - 'lancer' : Lance la voiture en mode autonome en appelant la méthode run() de CarController.
           - 'reset'  : (À implémenter) Réinitialiser et relancer la voiture.
-          - 'avancer': (À implémenter) Faire avancer la voiture.
+          - 'avancer': Fait avancer la voiture en mode simple via VoitureController.
         
         QUI: Anthony Vergeylen
         QUAND: 08-04-2025
@@ -133,16 +129,17 @@ class VoitureServer:
         """
         action = request.form.get('action')
         if action == 'lancer':
-            print("🚀 Lancement de la voiture")
-            # Exécuter la rotation sur place dans un thread pour ne pas bloquer le serveur
-            thread = threading.Thread(target=self.controller.tourner_sur_place)
+            print("🚀 Lancement de la voiture en mode autonome")
+            # Lancer la voiture via le contrôle autonome (CarController)
+            thread = threading.Thread(target=self.autonomous_controller.run)
             thread.start()
         elif action == 'reset':
-            print("🔄 Réinitialisation et relancement")
+            print("🔄 Réinitialisation et relancement (non implémenté)")
             # Logique de réinitialisation à implémenter
         elif action == 'avancer':
-            print("➡️ Avancer la voiture")
-            # Logique pour faire avancer la voiture à implémenter
+            print("➡️ Avancer la voiture en mode simple")
+            thread = threading.Thread(target=self.basic_controller.lancer_voiture)
+            thread.start()
         return redirect(url_for('index'))
 
     def run(self):
