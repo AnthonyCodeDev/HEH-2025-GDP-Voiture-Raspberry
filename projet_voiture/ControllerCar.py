@@ -37,7 +37,7 @@ class ControllerCar:
             return
 
         # Seuils de détection (en cm)
-        self.side_threshold = 20         # Obstacle latéral
+        self.side_threshold = 15         # Obstacle latéral
         self.front_threshold = 35        # Obstacle frontal (avertissement)
         self.emergency_threshold = 35    # Obstacle frontal (urgence)
 
@@ -47,7 +47,7 @@ class ControllerCar:
         self.angle_central = 45
 
         # Durées (en secondes)
-        self.duree_virage = 0.5
+        self.duree_virage = 0.4
         self.duree_marche_arriere = 0.35
         self.reverse_pause = 0.5
 
@@ -151,11 +151,9 @@ class ControllerCar:
         
         if distance_left > distance_right:
             print("Plus d'espace à gauche - virage à gauche")
-            print(f"Distance gauche : {self.angle_virage_gauche} cm")
             self.servo_ctrl.rotate(self.angle_virage_gauche)
         else:
             print("Plus d'espace à droite - virage à droite")
-            print(f"Distance droite : {self.angle_virage_droite} cm")
             self.servo_ctrl.rotate(self.angle_virage_droite)
         
         time.sleep(self.duree_virage)
