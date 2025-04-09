@@ -53,6 +53,10 @@ class MainController:
         # Transmet l'instance partagée de ControllerCar au serveur web
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
 
+        # Mise en position initiale des roues (45° pour qu'elles soient droites)
+        print("🔧 Mise en position initiale des roues (45°).")
+        self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
+
     def start_services(self):
         # Calibration du capteur RGB
         self.rgb_sensor.calibrate()
