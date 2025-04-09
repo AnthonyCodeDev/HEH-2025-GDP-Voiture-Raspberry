@@ -39,30 +39,37 @@ while time.time() - debut < 5:
     nb_mesures += 1
     time.sleep(0.1)
 
-# Calcul des valeurs moyennes de référence
+# Valeurs moyennes de référence
 ref_r = somme_r // nb_mesures
 ref_g = somme_g // nb_mesures
 ref_b = somme_b // nb_mesures
 print(f"✅ Calibration terminée. RGB de base : R={ref_r}, G={ref_g}, B={ref_b}")
 print("🕵️ Détection des couleurs en cours...")
 
-# Définir un seuil de détection (écart minimum pour considérer un changement)
+# Seuil de détection
 SEUIL = 10
+
+# Variable pour éviter les répétitions de message "rien de nouveau"
+dernier_etat = None
 
 try:
     while True:
         r, g, b = capteur.color_rgb_bytes
 
-        # Vérification si l'écart est significatif
         ecart_r = abs(r - ref_r)
         ecart_g = abs(g - ref_g)
         ecart_b = abs(b - ref_b)
 
         if ecart_r > SEUIL or ecart_g > SEUIL or ecart_b > SEUIL:
-            print(f"R: {r}, G: {g}, B: {b} -> {detecter_couleur(r, g, b)}")
+            message = f"R: {r}, G: {g}, B: {b} -> {detecter_couleur(r, g, b)}"
+            if message != dernier_etat:
+                print(message)
+                dernier_etat = message
         else:
-            print("🎯 Rien de nouveau détecté (environnement stable)")
-        
+            if dernier_etat != "stable":
+                print("🎯 Rien de nouveau détecté (environnement stable)")
+                dernier_etat = "stable"
+
         time.sleep(1)
 
 except KeyboardInterrupt:
