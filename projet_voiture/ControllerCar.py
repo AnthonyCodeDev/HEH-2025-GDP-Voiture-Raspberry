@@ -66,7 +66,7 @@ class ControllerCar:
 
         self._initialized = True
 
-        self.motor_speed_forwards = 20
+        self.motor_speed_forwards = 30
         self.motor_speed_backwards = 50
 
     def run(self):
