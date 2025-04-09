@@ -105,6 +105,13 @@
 <body>
     <div class="container">
         <h1>🚗 Voiture Projet</h1>
+        <div id="status" style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <div id="status-indicator"
+                style="width: 15px; height: 15px; border-radius: 50%; background-color: gray; margin-right: 10px;">
+            </div>
+            <span id="status-text">Vérification du statut...</span>
+        </div>
+
         <form method="post" action="/action">
             <button type="submit" name="action" value="lancer">Lancer la voiture</button>
             <button type="submit" name="action" value="reset">Réinitialiser</button>
@@ -121,17 +128,38 @@
     <script>
         function updateData() {
             fetch('/api/distances')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Réponse non valide');
+                    return response.json();
+                })
                 .then(data => {
                     document.getElementById('front').textContent = data.front.toFixed(2);
                     document.getElementById('left').textContent = data.left.toFixed(2);
                     document.getElementById('right').textContent = data.right.toFixed(2);
                     document.getElementById('speed').textContent = data.speed.toFixed(2);
+
+                    // Capteurs en ligne
+                    document.getElementById('status-indicator').style.backgroundColor = 'limegreen';
+                    document.getElementById('status-text').textContent = 'En ligne';
                 })
-                .catch(error => console.error('Erreur lors de la récupération des données:', error));
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des données:', error);
+
+                    // Capteurs hors ligne
+                    document.getElementById('front').textContent = 'N/A';
+                    document.getElementById('left').textContent = 'N/A';
+                    document.getElementById('right').textContent = 'N/A';
+                    document.getElementById('speed').textContent = 'N/A';
+
+                    document.getElementById('status-indicator').style.backgroundColor = 'red';
+                    document.getElementById('status-text').textContent = 'Hors ligne';
+                });
         }
+
         setInterval(updateData, 1000);
+        updateData(); // appel initial immédiat
     </script>
+
 </body>
 
 </html>
