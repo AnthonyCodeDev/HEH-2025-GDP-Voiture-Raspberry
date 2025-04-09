@@ -83,44 +83,50 @@ def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
         GPIO.setup(trigger_pin, GPIO.OUT)
         GPIO.setup(echo_pin, GPIO.IN)
 
-        # Stabilisation
-        GPIO.output(trigger_pin, False)
+        print(f"Stabilisation du {nom_capteur}...")
         time.sleep(0.5)
 
-        # Envoi du signal
-        GPIO.output(trigger_pin, True)
-        time.sleep(0.00001)
-        GPIO.output(trigger_pin, False)
+        max_essais = 5
+        for essai in range(max_essais):
+            # Envoi de l'impulsion
+            GPIO.output(trigger_pin, False)
+            time.sleep(0.002)
+            GPIO.output(trigger_pin, True)
+            time.sleep(0.00001)
+            GPIO.output(trigger_pin, False)
 
-        # Mesure du temps aller-retour
-        pulse_start = time.time()
-        timeout = pulse_start + 0.04  # 40 ms timeout
-        while GPIO.input(echo_pin) == 0 and time.time() < timeout:
-            pulse_start = time.time()
+            # Attente de l’écho
+            debut = time.time()
+            timeout = debut + 0.04
+            while GPIO.input(echo_pin) == 0 and time.time() < timeout:
+                debut = time.time()
 
-        pulse_end = time.time()
-        timeout = pulse_end + 0.04
-        while GPIO.input(echo_pin) == 1 and time.time() < timeout:
-            pulse_end = time.time()
+            fin = time.time()
+            timeout = fin + 0.04
+            while GPIO.input(echo_pin) == 1 and time.time() < timeout:
+                fin = time.time()
 
-        # Calcul distance
-        pulse_duration = pulse_end - pulse_start
-        distance = pulse_duration * 17150
-        distance = round(distance, 2)
+            # Calcul de la distance
+            duree = fin - debut
+            distance = round(duree * 17150, 2)
 
-        if 2 < distance < 400:
-            print(f"{nom_capteur} : OK (Distance : {distance:.1f} cm)")
-        else:
-            print(f"{nom_capteur} : Distance hors plage utile ({distance:.1f} cm)")
-        # On considère que le capteur est fonctionnel dans tous les cas
-        return True
+            # Vérification de la validité de la mesure
+            if 2 <= distance <= 400:
+                print(f"{nom_capteur} : OK (Distance : {distance} cm)")
+                return True
+            else:
+                print(f"{nom_capteur} : mesure incorrecte ({distance} cm), nouvel essai...")
 
+        print(f"{nom_capteur} : Échec après {max_essais} tentatives.")
+        return False
 
     except Exception as e:
-        print(f" {nom_capteur} : ERREUR -> {e}")
+        print(f"{nom_capteur} : ERREUR -> {e}")
         return False
+
     finally:
         GPIO.cleanup()
+
 
 def main():
     print("Vérification des capteurs en cours...\n")
