@@ -18,7 +18,7 @@ Quoi   : Permet de contrôler la voiture via une interface web et d'accéder aux
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import threading
 import time
-from ControllerMotor import ControllerMotor  # Module personnalisé pour contrôler les moteurs
+from ControllerMotor import ControllerMotor
 import RPi.GPIO as GPIO
 from ControllerCar import ControllerCar
 
@@ -78,7 +78,6 @@ class VoitureServer:
     def api_distances(self):
         distances = self.autonomous_controller.get_distances()
         speed = self.autonomous_controller.get_speed()
-        # Retourne les distances et la vitesse
         return jsonify({
             "front": distances["front"],
             "left": distances["left"],
