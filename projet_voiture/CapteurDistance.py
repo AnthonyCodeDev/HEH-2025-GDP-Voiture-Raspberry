@@ -79,4 +79,5 @@ class CapteurDistance:
 
         :return: Distance en centimètres.
         """
+        print("Distance avant : ", self.sensor_front.distance)
         return self.get_filtered_distance(self.sensor_front)
