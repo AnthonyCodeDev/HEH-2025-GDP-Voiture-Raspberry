@@ -4,6 +4,7 @@ import board
 import busio
 import adafruit_tcs34725
 from gpiozero import DistanceSensor
+import PCA9685 as PCA
 import sys
 
 # --- Vérification GPIO moteurs ---
@@ -38,6 +39,23 @@ def test_rgb_sensor():
         return True
     except Exception as e:
         print(f" Capteur RGB : ERREUR -> {e}")
+        return False
+
+def test_servo_moteur_basique():
+    try:
+        pwm = PCA.PWM()
+        pwm.frequency = 60
+        pwm.write(0, 0, 45)  # Position neutre
+        time.sleep(0.3)
+        pwm.write(0, 0, 60)  # Petit déplacement
+        time.sleep(0.3)
+        pwm.write(0, 0, 45)  # Retour centre
+        time.sleep(0.3)
+        pwm.write(0, 0, 4096)  # Désactive le signal
+        print(" Servo moteur (sans ServoController) : OK")
+        return True
+    except Exception as e:
+        print(f" Servo moteur : ERREUR -> {e}")
         return False
 
 def main():
