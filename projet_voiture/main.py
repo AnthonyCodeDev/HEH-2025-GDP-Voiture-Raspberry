@@ -12,6 +12,7 @@ QUAND: 09-04-2025
 
 import time
 import threading
+import os
 
 from ControllerCar import ControllerCar
 from WebServerCar import VoitureServer
@@ -34,6 +35,7 @@ class CarLauncher:
     def shutdown(self):
         print("🔒 Arrêt de la voiture en cours...")
         self.car_controller.cleanup()
+        os._exit(0)
 
 class MainController:
     """
