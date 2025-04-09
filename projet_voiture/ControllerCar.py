@@ -2,13 +2,15 @@
 """
 ControllerCar.py
 ----------------
-Ce module gère le contrôle autonome de la voiture.
+Ce module gère le contrôle autonome de la voiture en circuit circulaire.
 Il orchestre la lecture des mesures des capteurs de distance (via le module CapteurDistance),
-la commande des moteurs et du servo, et le comportement d'évitement des obstacles.
+la commande des moteurs et du servo, et le comportement d'évitement des obstacles tout en
+suivant automatiquement le tracé circulaire.
 
 Auteur : Vergeylen Anthony
-Date   : 08-04-2025
-Quoi   : Fournit la classe ControllerCar qui utilise CapteurDistance pour obtenir les mesures nécessaires à la navigation.
+Date   : 08-04-2025 (modifié le 09-04-2025)
+Description : Fournit la classe ControllerCar qui utilise CapteurDistance pour obtenir les mesures
+              nécessaires à la navigation dans un circuit circulaire.
 """
 
 import time
@@ -19,11 +21,11 @@ import RPi.GPIO as GPIO
 
 class ControllerCar:
     """
-    Contrôleur principal pour la voiture autonome.
+    Contrôleur principal pour la voiture autonome sur circuit circulaire.
 
-    QUI : Vergeylen Anthony
-    QUOI : Surveille les mesures de distance fournies par les capteurs et commande
-           les moteurs et le servo pour éviter les obstacles, tout en simulant la vitesse dynamique.
+    La voiture avance automatiquement et suit un tracé circulaire en gardant une distance cible par rapport
+    au mur intérieur (supposé être à gauche). Si un obstacle est détecté (avant ou latéralement), la logique d’évitement
+    déclenche une série d’actions (arrêt, marche arrière, rotation vers l’espace dégagé) pour sécuriser la trajectoire.
     """
     _instance = None
 
@@ -37,11 +39,11 @@ class ControllerCar:
             return
 
         # Seuils de détection (en cm)
-        self.side_threshold = 12         # Obstacle latéral
-        self.front_threshold = 41        # Obstacle frontal (avertissement)
-        self.emergency_threshold = 40    # Obstacle frontal (urgence)
+        self.side_threshold = 12         # Seuil critique côté
+        self.front_threshold = 41        # Seuil d'avertissement frontal
+        self.emergency_threshold = 40    # Seuil d'urgence frontal
 
-        # Paramètres de virage
+        # Paramètres de virage pour évitement
         self.angle_virage_gauche = -30
         self.angle_virage_droite = 30
         self.angle_central = 45
@@ -50,6 +52,12 @@ class ControllerCar:
         self.duree_virage = 0.4
         self.duree_marche_arriere = 0.35
         self.reverse_pause = 0.5
+
+        # Paramètres du suivi de circuit
+        # On suppose que la voiture suit un mur intérieur sur le côté gauche.
+        # La voiture essaie de maintenir une distance cible par rapport à ce mur.
+        self.target_distance_left = 20.0  # distance idéale à gauche (en cm)
+        self.k_p = 1.0                  # gain proportionnel pour la correction de trajectoire
 
         # Initialisation du module de capteurs de distance
         self.capteur = CapteurDistance()
@@ -64,41 +72,42 @@ class ControllerCar:
         self.acceleration = 0.1      # augmentation m/s par cycle (ajustable)
         self.deceleration = 0.2      # décélération lors d'une interruption (ajustable)
 
-        self._initialized = True
-
         self.motor_speed_forwards = 35
         self.motor_speed_backwards = 40
 
+        self._initialized = True
 
     def run(self):
         """
-        Lance la boucle principale de contrôle autonome de la voiture.
+        Lance la boucle principale de contrôle autonome de la voiture en circuit circulaire.
 
-        QUI : Vergeylen Anthony
-        QUOI : Démarre le mouvement en avant, simule l'accélération jusqu'à la vitesse max,
-               et adapte la vitesse en fonction des conditions (obstacles, virages, etc.).
+        La voiture démarre en allant de l'avant avec un léger biais de suivi de circuit.
+        En l'absence d'obstacles, une correction proportionnelle permet de suivre la trajectoire circulaire.
+        En cas de détection d'obstacles, la voiture effectue des manœuvres d'évitement (reculer, tourner,
+        reprendre l'avancée).
         """
-        print("Démarrage : la voiture avance en ligne droite...")
+        print("Démarrage : la voiture suit automatiquement le circuit circulaire...")
+        # On démarre avec une commande moteur avant et on centre le servo
         self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = 0.0
         self.servo_ctrl.setToDegree(self.angle_central)
 
         try:
             while True:
-                # Simuler une accélération progressive si aucune action perturbatrice n'intervient
+                # Simulation d'une accélération progressive vers la vitesse max
                 if self.current_speed < self.max_speed:
                     self.current_speed += self.acceleration
                     if self.current_speed > self.max_speed:
                         self.current_speed = self.max_speed
 
-                # Lecture des distances
+                # Lecture des distances via les capteurs
                 distance_front = self.capteur.get_distance_front()
                 distance_left  = self.capteur.get_distance_left()
                 distance_right = self.capteur.get_distance_right()
 
                 print(f"Distances -> Avant: {round(distance_front,2)} cm, Gauche: {round(distance_left,2)} cm, Droite: {round(distance_right,2)} cm")
 
-                # Gestion des différents cas
+                # Gestion des conditions d'urgence et obstacles
                 if distance_front < self.emergency_threshold:
                     self.handle_emergency_obstacle()
                 elif distance_front < self.front_threshold:
@@ -109,11 +118,38 @@ class ControllerCar:
                     self.handle_left_obstacle()
                 elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
+                else:
+                    # Aucun obstacle immédiat, on active le suivi de circuit
+                    self.follow_circuit()
 
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
         finally:
             self.cleanup()
+
+    def follow_circuit(self):
+        """
+        Permet de suivre le circuit circulaire en utilisant la distance du capteur latéral gauche.
+        
+        On utilise un contrôle proportionnel pour corriger l'orientation :
+          - Si la distance mesurée est inférieure à la distance cible, alors la voiture est trop proche
+            du mur intérieur et doit tourner vers la droite (angle positif).
+          - Si la distance mesurée est supérieure à la distance cible, la voiture est trop loin du mur
+            et doit tourner vers la gauche (angle négatif).
+        """
+        distance_left = self.capteur.get_distance_left()
+        # Calcul de l'erreur entre la distance cible et la distance mesurée
+        error = self.target_distance_left - distance_left
+        # Calcul de l'ajustement de l'angle via le contrôle proportionnel
+        steering_adjust = self.k_p * error
+        # On limite l'angle à la plage définie par les virages maximum
+        steering_adjust = max(min(steering_adjust, self.angle_virage_droite), self.angle_virage_gauche)
+        print(f"Suivi de circuit : distance gauche = {round(distance_left,2)} cm, erreur = {round(error,2)}, ajustement = {steering_adjust}°")
+        self.servo_ctrl.rotate(steering_adjust)
+        # Un court délai pour laisser le temps à la manœuvre (le délai peut être ajusté)
+        time.sleep(0.1)
+        # On remet le servo en position centrale pour la prochaine correction (cycle de commande)
+        self.servo_ctrl.setToDegree(self.angle_central)
 
     def handle_emergency_obstacle(self):
         """Gère un obstacle frontal en situation d'urgence."""
@@ -170,8 +206,7 @@ class ControllerCar:
 
     def handle_left_obstacle(self):
         print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(),2)} cm). Virage à gauche.")
-        # Réduire la vitesse pendant le virage
-        self.motor_ctrl.forward(self.motor_speed_forwards - 0)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_gauche)
         time.sleep(self.duree_virage)
@@ -181,7 +216,7 @@ class ControllerCar:
 
     def handle_right_obstacle(self):
         print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(),2)} cm). Virage à droite.")
-        self.motor_ctrl.forward(self.motor_speed_forwards - 0)
+        self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
@@ -207,3 +242,7 @@ class ControllerCar:
         Renvoie la vitesse actuelle du véhicule en m/s.
         """
         return self.current_speed
+
+if __name__ == '__main__':
+    voiture = ControllerCar()
+    voiture.run()
