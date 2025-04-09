@@ -48,7 +48,7 @@ class ControllerCar:
 
         # Durées (en secondes)
         self.duree_virage = 0.3
-        self.duree_marche_arriere = 0.5
+        self.duree_marche_arriere = 0.2
         self.reverse_pause = 0.5
 
         # Initialisation du module de capteurs de distance
