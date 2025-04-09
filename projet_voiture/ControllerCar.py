@@ -37,7 +37,7 @@ class ControllerCar:
             return
 
         # Seuils de détection (en cm)
-        self.side_threshold = 15         # Obstacle latéral
+        self.side_threshold = 20         # Obstacle latéral
         self.front_threshold = 35        # Obstacle frontal (avertissement)
         self.emergency_threshold = 35    # Obstacle frontal (urgence)
 
