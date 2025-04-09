@@ -8,12 +8,39 @@ import sys
 
 import RPi.GPIO as GPIO
 
+TRIG_PIN = 23
+ECHO_PIN = 24
 
-import RPi.GPIO as GPIO
-import time
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG_PIN, GPIO.OUT)
+GPIO.setup(ECHO_PIN, GPIO.IN)
 
-import RPi.GPIO as GPIO
-import time
+try:
+    GPIO.output(TRIG_PIN, False)
+    print("⏳ Stabilisation du capteur...")
+    time.sleep(2)
+
+    GPIO.output(TRIG_PIN, True)
+    time.sleep(0.00001)
+    GPIO.output(TRIG_PIN, False)
+
+    while GPIO.input(ECHO_PIN) == 0:
+        pulse_start = time.time()
+
+    while GPIO.input(ECHO_PIN) == 1:
+        pulse_end = time.time()
+
+    pulse_duration = pulse_end - pulse_start
+    distance = pulse_duration * 17150
+    distance = round(distance, 2)
+
+    print(f"✅ Capteur Ultrason : distance = {distance} cm")
+
+except Exception as e:
+    print(f"❌ Erreur capteur ultrason : {e}")
+
+finally:
+    GPIO.cleanup()
 
 # --- Vérification GPIO moteurs ---
 def test_gpio_moteur(pins):
@@ -49,57 +76,6 @@ def test_rgb_sensor():
         print(f" Capteur RGB : ERREUR -> {e}")
         return False
 
-# --- Vérification capteurs ultrason ---
-def test_ultrason(trigger_pin, echo_pin, nom_capteur="Capteur"):
-    try:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(trigger_pin, GPIO.OUT)
-        GPIO.setup(echo_pin, GPIO.IN)
-
-        print(f"Stabilisation du {nom_capteur}...")
-        time.sleep(0.5)
-
-        max_essais = 5
-        for essai in range(max_essais):
-            # Envoi de l'impulsion
-            GPIO.output(trigger_pin, False)
-            time.sleep(0.1)
-            GPIO.output(trigger_pin, True)
-            time.sleep(0.1)
-            GPIO.output(trigger_pin, False)
-
-            # Attente de l écho
-            debut = time.time()
-            timeout = debut + 0.04
-            while GPIO.input(echo_pin) == 0 and time.time() < timeout:
-                debut = time.time()
-
-            fin = time.time()
-            timeout = fin + 0.04
-            while GPIO.input(echo_pin) == 1 and time.time() < timeout:
-                fin = time.time()
-
-            # Calcul de la distance
-            duree = fin - debut
-            distance = round(duree * 17150, 2)
-
-            # Vérification de la validité de la mesure
-            if 2 <= distance <= 400:
-                print(f"{nom_capteur} : OK (Distance : {distance} cm)")
-                return True
-            else:
-                print(f"{nom_capteur} : mesure incorrecte ({distance} cm), nouvel essai...")
-
-        print(f"{nom_capteur} : Échec après {max_essais} tentatives.")
-        return False
-
-    except Exception as e:
-        print(f"{nom_capteur} : ERREUR -> {e}")
-        return False
-
-    finally:
-        GPIO.cleanup()
-
 def main():
     print("Vérification des capteurs en cours...\n")
 
@@ -107,9 +83,9 @@ def main():
     rgb_ok = test_rgb_sensor()
     
     print(" Vérification des capteurs à ultrasons...\n")
-    us1_ok = test_ultrason(trigger_pin=23, echo_pin=24, nom_capteur="Ultrason 1")
+    """us1_ok = test_ultrason(trigger_pin=23, echo_pin=24, nom_capteur="Ultrason 1")
     us2_ok = test_ultrason(trigger_pin=20, echo_pin=21, nom_capteur="Ultrason 2")
-    us3_ok = test_ultrason(trigger_pin=19, echo_pin=26, nom_capteur="Ultrason 3")
+    us3_ok = test_ultrason(trigger_pin=19, echo_pin=26, nom_capteur="Ultrason 3")"""
 
     if us1_ok and us2_ok and us3_ok:
         print("\n Tous les capteurs ultrasons fonctionnent.")
