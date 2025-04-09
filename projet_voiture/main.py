@@ -16,9 +16,9 @@ import board
 import busio
 import adafruit_tcs34725
 
-from go import CarController  # Module contrôlant la navigation autonome de la voiture
-from serveur_voiture import app  # Application Flask pour le contrôle web
-
+from CarController import CarController
+from serveur_voiture import app
+# ok
 
 class RGBSensorController:
     """
