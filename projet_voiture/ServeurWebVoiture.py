@@ -71,26 +71,23 @@ class VoitureServer:
     
     QUI: Anthony Vergeylen
     QUAND: 08-04-2025
-    QUOI: Permet d'interagir avec la voiture via une interface web et d'exécuter les actions correspondantes.
+    QUOI: Permet d'interagir avec la voiture via une interface web en utilisant une instance partagée de CarController.
     """
-    def __init__(self, host='0.0.0.0', port=5000):
+    def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None):
         """
         Initialise le serveur web et configure les routes Flask.
         
-        :param host: Adresse IP pour héberger le serveur (par défaut : '0.0.0.0').
-        :param port: Port pour le serveur (par défaut : 5000).
-        
-        QUI: Anthony Vergeylen
-        QUAND: 08-04-2025
-        QUOI: Prépare l'application Flask, associe les routes aux actions et instancie les contrôleurs.
+        :param autonomous_controller: Instance de CarController à utiliser. Si None, une nouvelle instance sera créée.
         """
         self.host = host
         self.port = port
         self.app = Flask(__name__, template_folder='templates')
-        # Contrôleur pour la commande basique (avancer)
-        self.basic_controller = VoitureController()
-        # Contrôleur autonome importé depuis CarController
-        self.autonomous_controller = CarController()
+        if autonomous_controller is None:
+            from CarController import CarController  # Importe ici au cas où
+            self.autonomous_controller = CarController()
+        else:
+            self.autonomous_controller = autonomous_controller
+        self.basic_controller = VoitureController()  # Pour la commande simple
         self._setup_routes()
 
     def _setup_routes(self):

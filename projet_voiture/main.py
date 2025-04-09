@@ -17,7 +17,7 @@ import busio
 import adafruit_tcs34725
 
 from CarController import CarController
-from ServeurWebVoiture import VoitureServer  # Importation de la classe VoitureServer
+from ServeurWebVoiture import VoitureServer
 
 class RGBSensorController:
     """
@@ -138,38 +138,31 @@ class CarLauncher:
     
     QUI: Vergeylen Anthony
     QUAND: 09-04-2025
-    QUOI: Instancie et démarre le module de contrôle autonome de la voiture.
+    QUOI: Utilise une instance existante de CarController pour démarrer le contrôle autonome.
     """
-    def __init__(self):
+    def __init__(self, car_controller):
         """
-        Initialise l'instance de CarController à partir du module CarController.
+        Initialise avec une instance de CarController déjà créée.
 
         QUI: Vergeylen Anthony
         QUAND: 09-04-2025
-        QUOI: Prépare le lancement du contrôle de la voiture autonome.
+        QUOI: Réutilise le même objet de contrôle pour éviter un double usage des pins.
         """
-        self.car_controller = CarController()
+        self.car_controller = car_controller
 
     def launch(self):
         """
-        Démarre la boucle de contrôle autonome de la voiture en appelant la méthode run() du CarController.
-
-        QUI: Vergeylen Anthony
-        QUAND: 09-04-2025
-        QUOI: Active le contrôle de la navigation autonome de la voiture.
+        Démarre le contrôle autonome de la voiture via la méthode run() du CarController.
         """
         self.car_controller.run()
 
     def shutdown(self):
         """
-        Arrête le contrôle autonome de la voiture et réalise les opérations de fermeture (arrêt des moteurs, nettoyage des GPIO, etc.).
-
-        QUI: Vergeylen Anthony
-        QUAND: 09-04-2025
-        QUOI: Stoppe la voiture, désactive les moteurs et nettoie les ressources pour un arrêt propre.
+        Arrête le contrôle autonome de la voiture.
         """
         print("🔒 Arrêt de la voiture en cours...")
         self.car_controller.cleanup()
+
 
 
 class WebServer:
@@ -206,30 +199,17 @@ class WebServer:
         # Créer une instance de VoitureServer pour lancer l'application Flask
         server = VoitureServer(self.host, self.port)
         server.run()
-
-
 class MainController:
     """
-    Contrôleur principal orchestrant l'exécution des services:
-    - Détection de couleur via le capteur RGB.
-    - Lancement du contrôle autonome de la voiture.
-    - Hébergement du serveur web.
-
-    QUI: Vergeylen Anthony
-    QUAND: 09-04-2025
-    QUOI: Initialise et démarre en parallèle l'ensemble des fonctionnalités de la voiture autonome.
+    Contrôleur principal orchestrant l'exécution des services.
     """
     def __init__(self):
-        """
-        Initialise les instances des contrôleurs RGB, de la voiture autonome et du serveur web.
-
-        QUI: Vergeylen Anthony
-        QUAND: 09-04-2025
-        QUOI: Prépare les composants principaux du système pour le démarrage.
-        """
+        # Crée une seule instance de CarController
+        self.car_controller = CarController()
         self.rgb_sensor = RGBSensorController(threshold=5, integration_time=100, calibration_duration=5)
-        self.car_launcher = CarLauncher()
-        self.web_server = WebServer(host='0.0.0.0', port=5000)
+        self.car_launcher = CarLauncher(self.car_controller)
+        # Transmet l'instance partagée à VoitureServer
+        self.web_server = WebServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller)
 
     def start_services(self):
         """
