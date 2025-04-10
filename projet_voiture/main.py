@@ -2,7 +2,7 @@
 """
 main.py
 -------
-Ce script orchestre le lancement du serveur web, du détecteur de couleur RGB (géré par CapteurRGB.py)
+Ce script gère le lancement du serveur web, du détecteur de couleur RGB (géré par CapteurRGB.py)
 et du contrôle autonome de la voiture. Chaque fonctionnalité est encapsulée dans une classe dédiée pour
 assurer une meilleure modularité et une maintenance facilitée.
 

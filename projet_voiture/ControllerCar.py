@@ -239,7 +239,7 @@ class ControllerCar:
         Attention : cette méthode utilise les attributs internes du moteur (précédés de __)
         et réalise une gestion directe. Assurez-vous que cela correspond à votre implémentation.
         """
-        try: 
+        try:
             print("🔁 Rotation sur place...")
             pwm_val = self.motor_ctrl._MotorController__scale_speed(speed)
             self.motor_ctrl._MotorController__apply_motor_state(
