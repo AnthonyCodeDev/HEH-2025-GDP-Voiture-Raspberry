@@ -6,6 +6,7 @@ import adafruit_tcs34725
 import PWM as PCA
 from gpiozero import DistanceSensor
 import sys
+sys.path.append('projet_voiture/') 
 
 # --- Vérification GPIO moteurs ---
 def test_gpio_moteur(pins):
