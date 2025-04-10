@@ -10,6 +10,7 @@ Auteur : Vergeylen Anthony
 Date   : 09-04-2025
 Quoi   : Gère le capteur RGB (via adafruit_tcs34725) et fournit des méthodes pour la calibration 
          et la détection de couleur.
+Vérfié : Matteo Di Leto
 """
 
 import time
@@ -19,13 +20,6 @@ import adafruit_tcs34725
 import threading
 
 class CapteurRGB:
-    """
-    Classe de gestion du capteur de couleur RGB.
-
-    QUI : Vergeylen Anthony
-    QUOI: Initialise le capteur RGB, effectue sa calibration et permet de détecter la couleur dominante.
-    QUAND: 09-04-2025
-    """
     def __init__(self, threshold=5, integration_time=100, calibration_duration=5):
         """
         Initialise le capteur RGB et configure les paramètres de calibration.
@@ -34,8 +28,6 @@ class CapteurRGB:
         :param integration_time: Temps d'intégration du capteur en millisecondes (par défaut 100).
         :param calibration_duration: Durée de la calibration en secondes (par défaut 5).
 
-        QUI : Vergeylen Anthony
-        QUOI: Configure l'I2C, active le capteur et initialise les valeurs de référence.
         """
         self.threshold = threshold
         self.integration_time = integration_time
@@ -52,14 +44,9 @@ class CapteurRGB:
         self.ref_b = None
 
     def calibrate(self):
-        """
-        Effectue la calibration du capteur RGB pour établir une référence de couleur.
+        #Effectue la calibration du capteur RGB pour établir une référence de couleur.
         
-        QUI : Vergeylen Anthony
-        QUOI: Mesure plusieurs échantillons durant la période de calibration et calcule la moyenne des valeurs RGB.
-        QUAND: 09-04-2025
-        """
-        print("🛠️ Calibration RGB en cours... Ne touchez à rien pendant 5 secondes.")
+        print("Calibration RGB en cours... Ne touchez à rien pendant 5 secondes.")
         nb_mesures = 0
         somme_r, somme_g, somme_b = 0, 0, 0
         debut = time.time()
@@ -73,7 +60,7 @@ class CapteurRGB:
         self.ref_r = somme_r // nb_mesures
         self.ref_g = somme_g // nb_mesures
         self.ref_b = somme_b // nb_mesures
-        print(f"✅ Calibration RGB terminée. Référence: R={self.ref_r}, G={self.ref_g}, B={self.ref_b}")
+        print(f"Calibration RGB terminée. Référence: R={self.ref_r}, G={self.ref_g}, B={self.ref_b}")
 
     def detect_color(self, r, g, b):
         """
@@ -82,11 +69,7 @@ class CapteurRGB:
         :param r: Valeur du rouge.
         :param g: Valeur du vert.
         :param b: Valeur du bleu.
-        :return: La couleur dominante ("rouge", "vert", "bleu" ou "indéterminé").
-
-        QUI : Vergeylen Anthony
-        QUOI: Compare les composantes RGB et retourne la couleur dominante.
-        QUAND: 09-04-2025
+        :return: La couleur dominante ("rouge", "vert", "bleu" ou "indéterminé")
         """
         if r > g and r > b:
             return "rouge"
@@ -103,13 +86,8 @@ class CapteurRGB:
         si la couleur dominante détectée est "vert".
 
         :param car_launcher: Instance de CarLauncher qui permet de lancer le contrôle autonome.
-        
-        QUI : Vergeylen Anthony
-        QUOI: Mesure en boucle les valeurs RGB, compare avec les valeurs de référence calibrées,
-              et, si la variation est significative et la couleur détectée est "vert", déclenche une action.
-        QUAND: 09-04-2025
         """
-        print("🕵️ Surveillance RGB en cours...")
+        print("Surveillance RGB en cours...")
         car_launched = False
         while True:
             r, g, b = self.sensor.color_rgb_bytes
@@ -120,7 +98,7 @@ class CapteurRGB:
                 couleur = self.detect_color(r, g, b)
                 print(f"RGB: R={r}, G={g}, B={b} -> Couleur détectée: {couleur}")
                 if couleur == "vert" and not car_launched:
-                    print("✅ Couleur verte détectée ! Lancement de la voiture autonome.")
+                    print("Couleur verte détectée ! Lancement de la voiture autonome.")
                     thread = threading.Thread(target=car_launcher.launch)
                     thread.start()
                     car_launched = True
