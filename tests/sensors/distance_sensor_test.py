@@ -19,6 +19,9 @@ class TestUltrasoundSensor(unittest.TestCase):
     
     @patch('projet_voiture.CapteurDistance.DistanceSensor')
     def setUp(self, mock_distance_sensor_class):
+        """Initialise le test avec un mock de DistanceSensor.
+        Crée un mock pour chaque instance prédéfinies dans le constructeur de CapteurDistance.
+        """
         Device.pin_factory = MockFactory()
     
         # Création d’un mock de capteur
@@ -37,7 +40,8 @@ class TestUltrasoundSensor(unittest.TestCase):
         self.directions = ["left", "right", "front"]
 
     def test_calculate_distance_valid(self):
-        """Teste les distances valides pour chaque orientation."""
+        """Teste les distances valides pour chaque orientation.
+        Résultat attendu : 10 cm."""
         for direction in self.directions:
             with self.subTest(direction=direction):
                 # Récupère la méthode get_distance_<direction>
@@ -49,6 +53,8 @@ class TestUltrasoundSensor(unittest.TestCase):
                 self.assertAlmostEqual(result, 10.0, delta=0.1)
 
     def test_calculate_distance_below_min(self):
+        """Teste les distances en dessous de la valeur minimale possible par les restrictions du capteur.
+        Résultat attendu : ValueError."""
         self.sensor.distance = 0.01  # 1 cm
         for direction in self.directions:
             with self.subTest(direction=direction):
@@ -57,6 +63,8 @@ class TestUltrasoundSensor(unittest.TestCase):
                     method()
 
     def test_calculate_distance_above_max(self):
+        """Teste les distances au-dessus de la valeur maximale possible par les restrictions du capteur.
+        Résultat attendu : ValueError."""
         self.sensor.distance = 4.5  # 450 cm
         for direction in self.directions:
             with self.subTest(direction=direction):
@@ -65,6 +73,8 @@ class TestUltrasoundSensor(unittest.TestCase):
                     method()
 
     def test_calculate_distance_exact_min(self):
+        """Teste la distance exacte correspondant a la distance minimal possible pour le capteur.
+        Résultat attendu : ValueError."""
         self.sensor.distance = 0.02  # 2 cm
         for direction in self.directions:
             with self.subTest(direction=direction):
@@ -73,6 +83,8 @@ class TestUltrasoundSensor(unittest.TestCase):
                     method()
 
     def test_calculate_distance_exact_max(self):
+        """Teste la distance exacte correspondant a la distance maximal possible pour le capteur.
+        Résultat attendu : ValueError."""
         self.sensor.distance = 4.0  # 400 cm
         for direction in self.directions:
             with self.subTest(direction=direction):
@@ -81,6 +93,8 @@ class TestUltrasoundSensor(unittest.TestCase):
                     method()
 
     def test_runtime_error_distance(self):
+        """Teste les erreurs d'exécution (timeout par exemple) lors de la lecture des distances.
+        Résultat attendu : RuntimeError."""
         self.sensor.distance = MagicMock(side_effect=RuntimeError("Sensor error"))
         for direction in self.directions:
             with self.subTest(direction=direction):
@@ -89,22 +103,32 @@ class TestUltrasoundSensor(unittest.TestCase):
                     method()
 
     def test_with_sample_count_as_zero(self):
+        """Teste la création de la classe avec un nombre d'échantillons égal à zéro.
+        Résultat attendu : ValueError."""
         with self.assertRaises(ValueError):
             CapteurDistance(sensor_sample_count=0, sensor_sample_delay=0.01, max_distance=4.0)
 
     def test_with_sample_delay_as_zero(self):
+        """Teste la création de la classe avec un délai d'échantillonnage égal à zéro.
+        Résultat attendu : ValueError."""
         with self.assertRaises(ValueError):
             CapteurDistance(sensor_sample_count=5, sensor_sample_delay=0, max_distance=4.0)
     
     def test_with_sample_count_as_very_high(self):
+        """Teste la création de la classe avec un nombre d'échantillons beaucoup trop élevé.
+        Résultat attendu : ValueError."""
         with self.assertRaises(ValueError):
             CapteurDistance(sensor_sample_count=1000000, sensor_sample_delay=0.01, max_distance=4.0)
     
     def test_with_sample_delay_as_very_high(self):
+        """Teste la création de la classe avec un délai d'échantillonnage beaucoup trop élevé.
+        Résultat attendu : ValueError."""
         with self.assertRaises(ValueError):
             CapteurDistance(sensor_sample_count=5, sensor_sample_delay=1000000, max_distance=4.0)
     
     def test_with_max_distance_as_zero(self):
+        """Teste la création de la classe avec une distance maximale égale à zéro.
+        Résultat attendu : ValueError."""
         with self.assertRaises(ValueError):
             CapteurDistance(sensor_sample_count=5, sensor_sample_delay=0.01, max_distance=0)
 
