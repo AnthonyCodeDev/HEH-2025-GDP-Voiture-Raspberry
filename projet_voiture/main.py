@@ -19,6 +19,7 @@ from WebServerCar import VoitureServer
 from CapteurRGB import CapteurRGB
 # from LineFollower import LineFollower
 from CarLauncher import CarLauncher
+from Logging import Logging
 
 class MainController:
     """
@@ -31,18 +32,20 @@ class MainController:
     QUOI: Initialise et démarre en parallèle l'ensemble des composants du système.
     """
     def __init__(self):
+
+        self.logger = Logging()
+
         # Création d'une seule instance de ControllerCar (Singleton)
         self.car_controller = ControllerCar()
-        # Instanciation du capteur RGB depuis le module dédié
-        self.rgb_sensor = CapteurRGB(threshold=5, integration_time=100, calibration_duration=5)
         self.car_launcher = CarLauncher(self.car_controller)
-        # Transmet l'instance partagée de ControllerCar au serveur web
+
+        self.rgb_sensor = CapteurRGB(threshold=5, integration_time=100, calibration_duration=5)
+
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller, car_launcher=self.car_launcher)
 
         # self.line_follower = LineFollower()
 
-        # Mise en position initiale des roues (45° pour qu'elles soient droites)
-        print("🔧 Mise en position initiale des roues (45°).")
+        self.logger.log("Mise en position initiale des roues (45°).", "main", "INFO")
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
         time.sleep(0.3)
         self.car_controller.servo_ctrl.setToDegree(0)
@@ -63,13 +66,13 @@ class MainController:
         server_thread = threading.Thread(target=self.web_server.run)
         server_thread.daemon = True
         server_thread.start()
-        print("🌐 Serveur web lancé.")
+        self.logger.log("Serveur web lancé.", "main", "INFO")
 
         # Démarrage de la surveillance RGB dans un thread séparé
         sensor_thread = threading.Thread(target=self.rgb_sensor.monitor, args=(self.car_launcher,))
         sensor_thread.daemon = True
         sensor_thread.start()
-        print("🔎 Surveillance RGB lancée.")
+        self.logger.log("Surveillance RGB lancée.", "main", "INFO")
 
         # Démarrage de la surveillance de ligne noire dans un thread séparé
         # line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
@@ -83,13 +86,13 @@ class MainController:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            print("🛑 Arrêt du programme principal.")
+            self.logger.log("Arrêt du programme principal.", "main", "INFO")
             self.shutdown_services()
 
     def shutdown_services(self):
-        print("🔒 Fermeture des services en cours...")
+        self.logger.log("Arrêt des services en cours...", "main", "INFO")
         self.car_launcher.shutdown()
-        print("✅ Services fermés proprement.")
+        self.logger.log("Services fermés proprement.", "main", "INFO")
 
 # if __name__ == '__main__':
 #     main_controller = MainController()
