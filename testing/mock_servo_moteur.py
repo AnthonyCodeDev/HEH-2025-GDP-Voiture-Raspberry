@@ -1,64 +1,94 @@
 #!/usr/bin/env python3
+
 import unittest
 from unittest.mock import MagicMock, patch
 import sys
-import os
+sys.modules['PWM'] = MagicMock()
+from projet_voiture.ControllerServo import ControllerServo
 
-# Ajoute le dossier racine du projet au chemin d'import
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Mock des modules matériels pour éviter les erreurs sur Windows
-sys.modules['smbus'] = MagicMock()
-
-class TestControllerServo(unittest.TestCase):
+class TestServoController(unittest.TestCase):
     def setUp(self):
         """
-        Patch le constructeur de PWM dans le module ControllerServo pour éviter l'accès réel au matériel.
+        Patch le constructeur de PWM dans le module servo_controller pour éviter l'accès réel au matériel.
+        Toutes les instances de PWM créées dans ServoController seront remplacées par un objet fictif.
         """
-        # Patch la méthode _get_pi_revision et _get_bus_number
-        self.patcher1 = patch('projet_voiture.PWM.PWM._get_pi_revision', return_value='non-linux')
-        self.patcher2 = patch('projet_voiture.PWM.PWM._get_bus_number', return_value=1)
-        self.patcher1.start()
-        self.patcher2.start()
-        
-        # Créer notre mock PWM
+        patcher = patch('projet_voiture.ControllerServo.PCA.PWM')
+        self.addCleanup(patcher.stop)
+        self.mock_pwm_class = patcher.start()
         self.mock_pwm_instance = MagicMock()
-        
-        # IMPORTANT: Nous devons patcher l'import de PWM dans ControllerServo
-        # pour qu'il retourne notre mock au lieu d'instancier la vraie classe
-        self.patcher_pwm = patch('projet_voiture.ControllerServo.PCA', return_value=self.mock_pwm_instance)
-        self.patcher_pwm.start()
-        
-        # Import ControllerServo après avoir configuré les mocks
-        from projet_voiture.ControllerServo import ControllerServo
-        self.ControllerServo = ControllerServo  # Garde une référence à la classe
-
-    def tearDown(self):
-        """Arrête tous les patchers après chaque test"""
-        self.patcher1.stop()
-        self.patcher2.stop()
-        self.patcher_pwm.stop()
+        self.mock_pwm_class.return_value = self.mock_pwm_instance
+        self.servo = ControllerServo()
 
     def test_initialization(self):
         """Test l'initialisation du contrôleur et la configuration de la fréquence PWM."""
-        servo = self.ControllerServo()
-        
-        # Vérifie que les valeurs par défaut sont correctement initialisées
-        self.assertEqual(servo.center_val, 320)
-        self.assertEqual(servo.min_val, 200)
-        self.assertEqual(servo.max_val, 500)
-        
-        # Vérifie que la fréquence PWM est définie correctement
-        self.assertEqual(servo.pwm.frequency, 60)
+       
+        # Vérification des paramètres par défaut
+        self.assertEqual(self.servo.center_val, 320)
+        self.assertEqual(self.servo.min_val, 200)
+        self.assertEqual(self.servo.max_val, 500)
+        # Vérifie que la fréquence a été définie sur 60Hz
+        self.assertEqual(self.servo.pwm.frequency, 60)
 
-    def test_rotate(self):
-        """Test de la méthode rotate pour des angles positifs et négatifs."""
-        servo = self.ControllerServo()
+    def test_rotate_positive_angles(self):
+        """Test de la méthode rotate pour des angles positifs (et gestion du clamp)."""
+        # On définit quelques cas de test sous forme de tuples (angle fourni, PWM attendue)
+        test_cases = [
+            (0, 320),
+            (25, 320 + int((25 / 50.0) * (500 - 320))),  # 320 + (0.5 * 180) = 410
+            (50, 500),
+            (60, 500)  # 60 dépasse la limite, doit être clamped à 50° → PWM = 500
+        ]
         
-        # Réinitialiser le mock
-        self.mock_pwm_instance.write.reset_mock()
-        
-        # Test avec un angle centré (0°)
-        servo.rotate(0)
-        self.mock_pwm_instance.write.assert_called_with(0, 0, 320)
-        
+        for angle, expected_pwm in test_cases:
+            self.servo.rotate(angle)
+            # On récupère les arguments du dernier appel à pwm.write et on vérifie qu'ils correspondent
+            self.assertEqual(self.mock_pwm_instance.write.call_args[0], (0, 0, expected_pwm))
+
+    def test_rotate_negative_angles(self):
+        """Test de la méthode rotate pour des angles négatifs (et gestion du clamp)."""
+
+        test_cases = [
+            (-25, 320 + int((-25 / 50.0) * (320 - 200))),  # 320 + (-0.5 * 120) = 260
+            (-50, 200),
+            (-100, 200)  # -100 doit être clamped à -50 → PWM = 200
+        ]
+        for angle, expected_pwm in test_cases:
+            self.servo.rotate(angle)
+            self.assertEqual(self.mock_pwm_instance.write.call_args[0], (0, 0, expected_pwm))
+
+    def test_setToDegree_valid(self):
+        """Test de la méthode setToDegree avec des angles valides."""
+
+        test_cases = [
+            (0, 320 + int((0 / 180.0) * (500 - 200))),     # 320 + (0 * 300) = 320
+            (90, 320 + int((90 / 180.0) * (500 - 200))),    # 320 + (0.5 * 300) = 470
+            (180, 320 + int((180 / 180.0) * (500 - 200)))   # 320 + (1 * 300) = 620
+        ]
+        for angle, expected_pwm in test_cases:
+            self.servo.setToDegree(angle)
+            self.assertEqual(self.mock_pwm_instance.write.call_args[0], (0, 0, expected_pwm))
+
+    def test_setToDegree_invalid(self):
+        """Test de la méthode setToDegree avec des angles hors limites (vérification du clamp)."""
+        test_cases = [
+            (-10, 320 + int((0 / 180.0) * (500 - 200))),    # -10 clamped à 0° → PWM = 320
+            (200, 320 + int((180 / 180.0) * (500 - 200)))     # 200 clamped à 180° → PWM = 620
+        ]
+        for angle, expected_pwm in test_cases:
+            self.servo.setToDegree(angle)
+            self.assertEqual(self.mock_pwm_instance.write.call_args[0], (0, 0, expected_pwm))
+
+    def test_resetRoue(self):
+        """Test de la méthode resetRoue pour réinitialiser la roue à la position centrale."""
+
+        self.servo.resetRoue()
+        self.assertEqual(self.mock_pwm_instance.write.call_args[0], (0, 0, self.servo.center_val))
+
+    def test_disable_pwm(self):
+        """Test de la méthode disable_pwm pour s'assurer que la PWM est correctement désactivée."""
+
+        self.servo.disable_pwm()
+        self.assertEqual(self.mock_pwm_instance.write.call_args[0], (0, 0, 4096))
+
+if __name__ == '__main__':
+    unittest.main()
