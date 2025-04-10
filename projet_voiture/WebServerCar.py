@@ -21,7 +21,7 @@ import time
 from ControllerMotor import ControllerMotor
 import RPi.GPIO as GPIO
 from ControllerCar import ControllerCar
-
+ 
 class VoitureController:
     def __init__(self, duration=10, speed=100):
         self.duration = duration
