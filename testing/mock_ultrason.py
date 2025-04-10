@@ -17,12 +17,13 @@ class TestUltrasoundSensor(unittest.TestCase):
     def setUp(self, mock_distance_sensor):
         """Initialise le test avec un mock de DistanceSensor.
         Cree un mock pour chaque instance predefinies dans le constructeur de CapteurDistance.
+
+        :params: mock_distance_sensor: Mock de la classe DistanceSensor de gpiozero.
         """
         Device.pin_factory = MockFactory()
     
         # creation d’un mock de capteur
         self.mock_sensor = MagicMock()
-        self.mock_sensor.distance = 0.1  # Simule une distance de 10 cm
         mock_distance_sensor.return_value = self.mock_sensor
     
         # creation de l’objet a tester
@@ -31,9 +32,7 @@ class TestUltrasoundSensor(unittest.TestCase):
         # self.directions = ["left", "right", "front"]
 
     def test_calculate_distance_valid(self):
-        """Teste les distances valides pour chaque orientation.
-        
-        :return: 10 cm"""
+        """Teste les distances valides pour chaque orientation."""
         self.mock_sensor.distance = 0.1  # 10 cm
         result = self.sensor.get_distance()
         self.assertAlmostEqual(result, 10.0,delta=0.1,msg=f"echec : La distance mesuree est {result} cm, mais elle devrait être proche de 400 cm.")
