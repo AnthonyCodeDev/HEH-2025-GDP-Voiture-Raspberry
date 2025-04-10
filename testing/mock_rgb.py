@@ -46,5 +46,29 @@ class TestCapteurRGB(unittest.TestCase):
         self.assertEqual(self.capteur.detect_color(50, 50, 255), "bleu")
         self.assertEqual(self.capteur.detect_color(100, 100, 100), "indéterminé")
 
+    def test_threshold_values(self):
+
+        # Valeurs différentes
+        test_values = [-1, 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]
+        for value in test_values:
+            with self.assertRaises(ValueError, msg="echec : le code ne detecte pas le ValueError, donnee dans le cas d'une instanciation avec threshold incorrect"):
+                CapteurRGB(threshold=value,integration_time=100, calibration_duration=5)
+
+    def test_integration_time_values(self):
+
+        # Valeurs différentes
+        test_values = [-1, 69420]
+        for value in test_values:
+            with self.assertRaises(ValueError, msg="echec : le code ne detecte pas le ValueError, donnee dans le cas d'une instanciation avec integration_time incorrect"):
+                CapteurRGB(threshold=5,integration_time=value, calibration_duration=5)
+
+    def test_calibration_duration_values(self):
+
+        # Valeurs différentes
+        test_values = [-1, 42069]
+        for value in test_values:
+            with self.assertRaises(ValueError, msg="echec : le code ne detecte pas le ValueError, donnee dans le cas d'une instanciation avec calibration_duration incorrect"):
+                CapteurRGB(threshold=5,integration_time=100, calibration_duration=value)
+
 if __name__ == '__main__':
     unittest.main()
