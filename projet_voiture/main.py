@@ -91,6 +91,6 @@ class MainController:
         self.car_launcher.shutdown()
         print("✅ Services fermés proprement.")
 
-if __name__ == '__main__':
-    main_controller = MainController()
-    main_controller.start_services()
+# if __name__ == '__main__':
+#     main_controller = MainController()
+#     main_controller.start_services()

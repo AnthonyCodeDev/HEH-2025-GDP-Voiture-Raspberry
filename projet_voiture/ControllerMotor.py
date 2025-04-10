@@ -113,32 +113,32 @@ class ControllerMotor:
         """
         return speed * 4095 / 100
 
-def main():
-    """
-    Fonction principale pour tester le contrôleur de moteurs.
-    Fait avancer pendant 2 secondes, reculer pendant 2 secondes, puis arrête.
+# def main():
+#     """
+#     Fonction principale pour tester le contrôleur de moteurs.
+#     Fait avancer pendant 2 secondes, reculer pendant 2 secondes, puis arrête.
     
-    Auteur : Anthony Vergeylen
-    Date   : 08-04-2025
-    Quoi   : Fonction principale pour tester le contrôleur de moteurs.
-    """
-    try:
-        motor_ctrl = ControllerMotor()
-        print("Mouvement avant...")
-        motor_ctrl.forward(100)
-        time.sleep(2)
+#     Auteur : Anthony Vergeylen
+#     Date   : 08-04-2025
+#     Quoi   : Fonction principale pour tester le contrôleur de moteurs.
+#     """
+#     try:
+#         motor_ctrl = ControllerMotor()
+#         print("Mouvement avant...")
+#         motor_ctrl.forward(100)
+#         time.sleep(2)
         
-        print("Mouvement arrière...")
-        motor_ctrl.backward(-100)
-        time.sleep(2)
+#         print("Mouvement arrière...")
+#         motor_ctrl.backward(-100)
+#         time.sleep(2)
         
-        print("Arrêt...")
-        motor_ctrl.stop()
-    except Exception as err:
-        print("Erreur :", err)
-    finally:
-        GPIO.cleanup()
-        print("Nettoyage des GPIO terminé.")
+#         print("Arrêt...")
+#         motor_ctrl.stop()
+#     except Exception as err:
+#         print("Erreur :", err)
+#     finally:
+#         GPIO.cleanup()
+#         print("Nettoyage des GPIO terminé.")
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

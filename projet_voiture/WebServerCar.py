@@ -17,29 +17,9 @@ Quoi   : Permet de contrôler la voiture via une interface web et d'accéder aux
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import threading
-import time
-from ControllerMotor import ControllerMotor
 import RPi.GPIO as GPIO
 from ControllerCar import ControllerCar
- 
-class VoitureController:
-    def __init__(self, duration=10, speed=100):
-        self.duration = duration
-        self.speed = speed
-        self.motor = ControllerMotor()
-
-    def lancer_voiture(self):
-        try:
-            print("🚀 Lancement de la voiture en mode avance (simple)...")
-            self.motor.forward(self.speed)
-            time.sleep(self.duration)
-            print("🛑 Arrêt de la voiture")
-            self.motor.stop()
-        except Exception as e:
-            print("Erreur lors du lancement de la voiture (mode avance):", e)
-        finally:
-            GPIO.cleanup()
-            print("Nettoyage des GPIO terminé.")
+from VoitureController import VoitureController
 
 class VoitureServer:
     def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None, car_launcher=None):
@@ -93,6 +73,6 @@ class VoitureServer:
         print(f"🌐 Lancement du serveur web sur {self.host}:{self.port}")
         self.app.run(host=self.host, port=self.port)
 
-if __name__ == '__main__':
-    server = VoitureServer()
-    server.run()
+# if __name__ == '__main__':
+#     server = VoitureServer()
+#     server.run()

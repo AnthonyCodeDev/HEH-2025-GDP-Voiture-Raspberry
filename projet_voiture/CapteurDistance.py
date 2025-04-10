@@ -7,49 +7,39 @@ Il encapsule la configuration et le filtrage des mesures des capteurs ultrason p
 
 Auteur : Vergeylen Anthony
 Date   : 08-04-2025
-Quoi   : Fournit une classe CapteurDistance pour initialiser et obtenir les distances mesurées par les capteurs ultrason.
+Quoi   : Fournit une classe CapteurDistance pour obtenir les mesures filtrées des capteurs ultrason.
 """
 
 import time
-from gpiozero import DistanceSensor
 
 class CapteurDistance:
     """
     Classe de gestion des capteurs de distance ultrason.
-
-    QUI: Vergeylen Anthony
-    QUAND: 08-04-2025
-    QUOI: Initialise les capteurs (gauche, droit et avant) et fournit des méthodes pour obtenir des mesures filtrées.
     """
-    def __init__(self, sensor_sample_count=5, sensor_sample_delay=0.01, max_distance=4):
+
+    def __init__(self, sensor_left, sensor_right, sensor_front, sensor_sample_count=5, sensor_sample_delay=0.01):
         """
-        Initialise les capteurs de distance.
+        Initialise les capteurs de distance avec des objets déjà instanciés.
 
-        :param sensor_sample_count: Nombre d'échantillons à prendre pour le filtrage (par défaut 5).
-        :param sensor_sample_delay: Délai entre chaque lecture en secondes (par défaut 0.01).
-        :param max_distance: Distance maximale en mètres détectable par les capteurs (par défaut 4).
-
-        QUI: Vergeylen Anthony
-        QUAND: 08-04-2025
-        QUOI: Configure et initialise les objets DistanceSensor pour les capteurs gauche, droit et avant.
+        :param sensor_left: Instance de DistanceSensor pour le capteur gauche.
+        :param sensor_right: Instance de DistanceSensor pour le capteur droit.
+        :param sensor_front: Instance de DistanceSensor pour le capteur avant.
+        :param sensor_sample_count: Nombre d'échantillons à prendre pour filtrer (défaut : 5).
+        :param sensor_sample_delay: Délai entre les échantillons en secondes (défaut : 0.01).
         """
         self.sensor_sample_count = sensor_sample_count
         self.sensor_sample_delay = sensor_sample_delay
 
-        self.sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=max_distance)
-        self.sensor_right = DistanceSensor(trigger=11, echo=9, max_distance=max_distance)
-        self.sensor_front = DistanceSensor(trigger=6, echo=5, max_distance=max_distance)
+        self.sensor_left = sensor_left
+        self.sensor_right = sensor_right
+        self.sensor_front = sensor_front
 
     def get_filtered_distance(self, sensor):
         """
-        Retourne la distance moyenne mesurée par un capteur après application d'un filtrage.
+        Retourne la distance moyenne mesurée par un capteur après filtrage.
 
-        :param sensor: Instance de DistanceSensor dont on souhaite obtenir la mesure.
+        :param sensor: Objet DistanceSensor dont on souhaite obtenir la mesure.
         :return: Distance moyenne en centimètres.
-
-        QUI: Vergeylen Anthony
-        QUAND: 08-04-2025
-        QUOI: Calcule la moyenne de plusieurs lectures pour réduire le bruit dans la mesure.
         """
         total = 0.0
         for _ in range(self.sensor_sample_count):

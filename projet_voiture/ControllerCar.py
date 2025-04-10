@@ -12,6 +12,7 @@ Quoi   : Fournit la classe ControllerCar qui utilise CapteurDistance pour obteni
 """
 
 import time
+from gpiozero import DistanceSensor  # Import nécessaire pour créer les capteurs
 from ControllerMotor import ControllerMotor
 from ControllerServo import ControllerServo
 from CapteurDistance import CapteurDistance
@@ -20,10 +21,6 @@ import RPi.GPIO as GPIO
 class ControllerCar:
     """
     Contrôleur principal pour la voiture autonome.
-
-    QUI : Vergeylen Anthony
-    QUOI : Surveille les mesures de distance fournies par les capteurs et commande
-           les moteurs et le servo pour éviter les obstacles, tout en simulant la vitesse dynamique.
     """
     _instance = None
 
@@ -51,8 +48,15 @@ class ControllerCar:
         self.duree_marche_arriere = 0.35
         self.reverse_pause = 0.5
 
-        # Initialisation du module de capteurs de distance
-        self.capteur = CapteurDistance()
+        # Configuration et création des capteurs via gpiozero
+        max_distance = 4  # Distance maximale en mètres détectable par les capteurs
+
+        sensor_left = DistanceSensor(trigger=26, echo=19, max_distance=max_distance)
+        sensor_right = DistanceSensor(trigger=11, echo=9, max_distance=max_distance)
+        sensor_front = DistanceSensor(trigger=6, echo=5, max_distance=max_distance)
+
+        # Instanciation du module de capteurs de distance avec les capteurs créés
+        self.capteur_distance = CapteurDistance(sensor_left, sensor_right, sensor_front)
 
         # Initialisation des contrôleurs de moteurs et du servo
         self.motor_ctrl = ControllerMotor()
@@ -69,14 +73,9 @@ class ControllerCar:
         self.motor_speed_forwards = 35
         self.motor_speed_backwards = 40
 
-
     def run(self):
         """
         Lance la boucle principale de contrôle autonome de la voiture.
-
-        QUI : Vergeylen Anthony
-        QUOI : Démarre le mouvement en avant, simule l'accélération jusqu'à la vitesse max,
-               et adapte la vitesse en fonction des conditions (obstacles, virages, etc.).
         """
         print("Démarrage : la voiture avance en ligne droite...")
         self.motor_ctrl.forward(self.motor_speed_forwards)
@@ -92,9 +91,9 @@ class ControllerCar:
                         self.current_speed = self.max_speed
 
                 # Lecture des distances
-                distance_front = self.capteur.get_distance_front()
-                distance_left  = self.capteur.get_distance_left()
-                distance_right = self.capteur.get_distance_right()
+                distance_front = self.capteur_distance.get_distance_front()
+                distance_left  = self.capteur_distance.get_distance_left()
+                distance_right = self.capteur_distance.get_distance_right()
 
                 print(f"Distances -> Avant: {round(distance_front,2)} cm, Gauche: {round(distance_left,2)} cm, Droite: {round(distance_right,2)} cm")
 
@@ -117,7 +116,7 @@ class ControllerCar:
 
     def handle_emergency_obstacle(self):
         """Gère un obstacle frontal en situation d'urgence."""
-        distance_front = self.capteur.get_distance_front()
+        distance_front = self.capteur_distance.get_distance_front()
         print(f"URGENCE! Obstacle frontal très proche ({round(distance_front,2)} cm).")
         self.motor_ctrl.stop()
         self.current_speed = 0.0
@@ -131,7 +130,7 @@ class ControllerCar:
 
     def handle_front_obstacle(self):
         """Gère un obstacle frontal en reculant et en tournant vers le côté le plus dégagé."""
-        distance_front = self.capteur.get_distance_front()
+        distance_front = self.capteur_distance.get_distance_front()
         print(f"Obstacle frontal détecté ({round(distance_front,2)} cm).")
         self.motor_ctrl.stop()
         self.current_speed = 0.0
@@ -146,8 +145,8 @@ class ControllerCar:
 
     def turn_to_most_space(self):
         """Tourne vers le côté où il y a le plus d'espace disponible."""
-        distance_left = self.capteur.get_distance_left()
-        distance_right = self.capteur.get_distance_right()
+        distance_left = self.capteur_distance.get_distance_left()
+        distance_right = self.capteur_distance.get_distance_right()
         
         if distance_left > distance_right:
             print("Plus d'espace à gauche - virage à gauche")
@@ -160,7 +159,7 @@ class ControllerCar:
         self.servo_ctrl.setToDegree(self.angle_central)
 
     def handle_double_side_obstacle(self):
-        print(f"Obstacle double détecté (G: {round(self.capteur.get_distance_left(),2)} cm, D: {round(self.capteur.get_distance_right(),2)} cm).")
+        print(f"Obstacle double détecté (G: {round(self.capteur_distance.get_distance_left(),2)} cm, D: {round(self.capteur_distance.get_distance_right(),2)} cm).")
         self.motor_ctrl.backward(-self.motor_speed_backwards)
         self.current_speed = 0.0
         time.sleep(self.duree_marche_arriere)
@@ -169,7 +168,7 @@ class ControllerCar:
         self.current_speed = self.max_speed
 
     def handle_left_obstacle(self):
-        print(f"Obstacle détecté sur le côté gauche ({round(self.capteur.get_distance_left(),2)} cm). Virage à gauche.")
+        print(f"Obstacle détecté sur le côté gauche ({round(self.capteur_distance.get_distance_left(),2)} cm). Virage à gauche.")
         # Réduire la vitesse pendant le virage
         self.motor_ctrl.forward(self.motor_speed_forwards - 0)
         self.current_speed = 0.5
@@ -180,7 +179,7 @@ class ControllerCar:
         self.current_speed = self.max_speed
 
     def handle_right_obstacle(self):
-        print(f"Obstacle détecté sur le côté droit ({round(self.capteur.get_distance_right(),2)} cm). Virage à droite.")
+        print(f"Obstacle détecté sur le côté droit ({round(self.capteur_distance.get_distance_right(),2)} cm). Virage à droite.")
         self.motor_ctrl.forward(self.motor_speed_forwards - 0)
         self.current_speed = 0.5
         self.servo_ctrl.rotate(self.angle_virage_droite)
@@ -197,9 +196,9 @@ class ControllerCar:
 
     def get_distances(self):
         return {
-            "front": self.capteur.get_distance_front(),
-            "left": self.capteur.get_distance_left(),
-            "right": self.capteur.get_distance_right()
+            "front": self.capteur_distance.get_distance_front(),
+            "left": self.capteur_distance.get_distance_left(),
+            "right": self.capteur_distance.get_distance_right()
         }
     
     def get_speed(self):
