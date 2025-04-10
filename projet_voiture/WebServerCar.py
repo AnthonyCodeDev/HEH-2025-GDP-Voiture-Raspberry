@@ -60,6 +60,14 @@ class VoitureServer:
         elif action == 'relancer':
             print("🔄 Relance du module : appel à restart_car() dans ControllerCar")
             self.autonomous_controller.restart_car()
+        elif action == 'tour_en_8':
+            print("♾️ Tour en 8 lancé")
+            thread = threading.Thread(target=self.autonomous_controller.tour_en_8)
+            thread.start()
+        elif action == 'rotation':
+            print("🔁 Rotation sur place lancée")
+            thread = threading.Thread(target=self.autonomous_controller.rotation_sur_place)
+            thread.start()
         
         return redirect(url_for('index'))
 
