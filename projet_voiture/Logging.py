@@ -54,9 +54,8 @@ class Logging:
         with open(log_file_path, "a") as log_file:
             log_file.write(formatted_message + "\n")
 
-# Exemple d'utilisation de la classe Logging
-if __name__ == "__main__":
-    logger = Logging()
-    logger.log("Ceci est une information de test.", "system", "INFO")
-    logger.log("Attention, un avertissement a été détecté!", "system", "WARNING")
-    logger.log("Alerte critique! Intervention immédiate nécessaire.", "system", "ALERT")
+# if __name__ == "__main__":
+#     logger = Logging()
+#     logger.log("Ceci est une information de test.", "system", "INFO")
+#     logger.log("Attention, un avertissement a été détecté!", "system", "WARNING")
+#     logger.log("Alerte critique! Intervention immédiate nécessaire.", "system", "ALERT")
