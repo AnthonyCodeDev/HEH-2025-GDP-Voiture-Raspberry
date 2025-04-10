@@ -187,6 +187,36 @@ class ControllerCar:
         self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed
 
+    def restart_car(self):
+        """
+        Redémarre le module : arrêt des moteurs, remise de la vitesse à 0 et réinitialisation de la position du servo.
+        Le module est ensuite en attente d'une commande de démarrage (LED verte ou bouton start).
+        """
+        print("🔄 Redémarrage du module (restart_car) en cours...")
+        # Arrêt en douceur des moteurs
+        self.motor_ctrl.stop()
+        self.current_speed = 0.0
+
+        try:
+            import time
+            # Séquence d'initialisation du servo (similaire à celle du main.py)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(0)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(90)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            time.sleep(0.3)
+            self.servo_ctrl.disable_pwm()
+        except Exception as e:
+            print("Erreur lors de la réinitialisation du servo dans restart_car :", e)
+
+        print("🔄 Module relancé, en attente d'une commande de démarrage (LED verte ou bouton start).")
+
+
     def cleanup(self):
         self.motor_ctrl.stop()
         self.servo_ctrl.disable_pwm()

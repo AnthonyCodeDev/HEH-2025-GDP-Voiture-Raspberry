@@ -58,37 +58,10 @@ class VoitureServer:
             print("🛑 Arrêt demandé via interface web")
             self.car_launcher.shutdown()
         elif action == 'relancer':
-            print("🔄 Relance du module : réinitialisation du système en cours...")
-            # Arrêt en douceur des moteurs (sans quitter le programme)
-            self.autonomous_controller.motor_ctrl.stop()
-            # Réinitialisation de la vitesse
-            self.autonomous_controller.current_speed = 0.0
-
-            # Récupération du contrôleur de servo et de la position centrale
-            servo = self.autonomous_controller.servo_ctrl
-            central = self.autonomous_controller.angle_central
-
-            # Exécution d'une séquence de réinitialisation similaire à celle du main.py
-            try:
-                import time
-                servo.setToDegree(central)
-                time.sleep(0.3)
-                servo.setToDegree(0)
-                time.sleep(0.3)
-                servo.setToDegree(central)
-                time.sleep(0.3)
-                servo.setToDegree(90)
-                time.sleep(0.3)
-                servo.setToDegree(central)
-                time.sleep(0.3)
-                servo.disable_pwm()
-            except Exception as e:
-                print("Erreur lors de la réinitialisation du servo :", e)
-
-            print("🔄 Module relancé, en attente d'une commande de démarrage (LED verte ou bouton start).")
+            print("🔄 Relance du module : appel à restart_car() dans ControllerCar")
+            self.autonomous_controller.restart_car()
         
         return redirect(url_for('index'))
-
 
     def api_distances(self):
         distances = self.autonomous_controller.get_distances()
