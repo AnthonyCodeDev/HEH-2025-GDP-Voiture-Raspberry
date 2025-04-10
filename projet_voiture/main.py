@@ -45,7 +45,7 @@ class MainController:
 
         # self.line_follower = LineFollower()
 
-        self.logger.log("Mise en position initiale des roues (45°).", "main", "INFO")
+        self.logger.log("Mise en position initiale des roues (45°).", "lancement_voiture", "INFO")
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
         time.sleep(0.3)
         self.car_controller.servo_ctrl.setToDegree(0)
@@ -66,13 +66,13 @@ class MainController:
         server_thread = threading.Thread(target=self.web_server.run)
         server_thread.daemon = True
         server_thread.start()
-        self.logger.log("Serveur web lancé.", "main", "INFO")
+        self.logger.log("Serveur web lancé.", "lancement_voiture", "INFO")
 
         # Démarrage de la surveillance RGB dans un thread séparé
         sensor_thread = threading.Thread(target=self.rgb_sensor.monitor, args=(self.car_launcher,))
         sensor_thread.daemon = True
         sensor_thread.start()
-        self.logger.log("Surveillance RGB lancée.", "main", "INFO")
+        self.logger.log("Surveillance RGB lancée.", "lancement_voiture", "INFO")
 
         # Démarrage de la surveillance de ligne noire dans un thread séparé
         # line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
@@ -86,14 +86,10 @@ class MainController:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            self.logger.log("Arrêt du programme principal.", "main", "INFO")
+            self.logger.log("Arrêt du programme principal.", "lancement_voiture", "INFO")
             self.shutdown_services()
 
     def shutdown_services(self):
-        self.logger.log("Arrêt des services en cours...", "main", "INFO")
+        self.logger.log("Arrêt des services en cours...", "lancement_voiture", "INFO")
         self.car_launcher.shutdown()
-        self.logger.log("Services fermés proprement.", "main", "INFO")
-
-# if __name__ == '__main__':
-#     main_controller = MainController()
-#     main_controller.start_services()
+        self.logger.log("Services fermés proprement.", "lancement_voiture", "INFO")

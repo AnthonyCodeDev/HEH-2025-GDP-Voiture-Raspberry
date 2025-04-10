@@ -72,7 +72,3 @@ class VoitureServer:
     def run(self):
         print(f"🌐 Lancement du serveur web sur {self.host}:{self.port}")
         self.app.run(host=self.host, port=self.port)
-
-# if __name__ == '__main__':
-#     server = VoitureServer()
-#     server.run()
