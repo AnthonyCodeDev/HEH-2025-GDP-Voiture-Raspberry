@@ -3,6 +3,7 @@ import time
 import board
 import busio
 import adafruit_tcs34725
+import PWM as PCA
 from gpiozero import DistanceSensor
 import sys
 
@@ -40,23 +41,22 @@ def test_rgb_sensor():
         print(f" Capteur RGB : ERREUR -> {e}")
         return False
 
-def test_servo_moteur_basique():
+def test_servo_moteur_presence():
+    """
+    Test de base : vérifie que le contrôleur PWM est accessible et
+    que le servo est alimenté (sans envoyer de position de rotation).
+    Aucun mouvement ne sera commandé.
+    """
     try:
-        pwm = PCA.PWM()
-        pwm.frequency = 60
-        pwm.write(0, 0, 45)  # Position neutre
-        time.sleep(0.3)
-        pwm.write(0, 0, 60)  # Petit déplacement
-        time.sleep(0.3)
-        pwm.write(0, 0, 45)  # Retour centre
-        time.sleep(0.3)
-        pwm.write(0, 0, 4096)  # Désactive le signal
-        print(" Servo moteur : OK")
+        pwm = PCA.PWM()            # Initialisation du module PWM
+        pwm.frequency = 60         # Fréquence standard pour servos
+        time.sleep(0.2)            # Laisse le bus I2C s’initialiser
+        pwm.write(0, 0, 4096)      # Coupe le signal sur le canal 0 (désactivation passive)
+        print("Servo moteur détecté et contrôleur actif (aucun mouvement effectué).")
         return True
     except Exception as e:
-        print(f" Servo moteur : ERREUR -> {e}")
+        print(f"Servo moteur : ERREUR -> {e}")
         return False
-
 def test_hcsr04(TRIG, ECHO, place):
     try:
         GPIO.setmode(GPIO.BCM)
@@ -109,6 +109,7 @@ def main():
     hcsr_droit = test_hcsr04(26,19, "DROIT")
     hcsr_avant = test_hcsr04(6,5, 'AVANT')
     hcsr_gauche = test_hcsr04(11,9, 'GAUCHE')
+    servo_ok = test_servo_moteur_presence()
 
 
 if __name__ == "__main__":
