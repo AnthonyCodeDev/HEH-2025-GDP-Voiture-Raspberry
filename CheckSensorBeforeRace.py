@@ -3,10 +3,8 @@ import time
 import board
 import busio
 import adafruit_tcs34725
-import PWM as PCA
-from gpiozero import DistanceSensor
-import sys
-sys.path.append('projet_voiture/') 
+from projet_voiture import PWM as PCA
+from gpiozero import DistanceSensor 
 
 # --- Vérification GPIO moteurs ---
 def test_gpio_moteur(pins):
