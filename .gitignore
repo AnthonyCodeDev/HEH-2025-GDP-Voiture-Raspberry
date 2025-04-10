@@ -1,0 +1,13 @@
+# Environnements virtuels
+venv/
+
+# Fichiers Python temporaires
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
