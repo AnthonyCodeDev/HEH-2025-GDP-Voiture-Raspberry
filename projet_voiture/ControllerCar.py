@@ -106,12 +106,6 @@ class ControllerCar:
                 elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
 
-                # Vous pouvez déclencher les manœuvres spéciales par commande externe :
-                # Par exemple, si une condition particulière est remplie :
-                # self.rotation_sur_place(duration=5, speed=80)
-                # ou
-                # self.tour_en_8(speed=35, cycle_time=12, dt=0.03, cycles=3, amplitude=20)
-
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
         finally:
@@ -245,7 +239,7 @@ class ControllerCar:
         Attention : cette méthode utilise les attributs internes du moteur (précédés de __)
         et réalise une gestion directe. Assurez-vous que cela correspond à votre implémentation.
         """
-        try:
+        try: 
             print("🔁 Rotation sur place...")
             pwm_val = self.motor_ctrl._MotorController__scale_speed(speed)
             self.motor_ctrl._MotorController__apply_motor_state(
