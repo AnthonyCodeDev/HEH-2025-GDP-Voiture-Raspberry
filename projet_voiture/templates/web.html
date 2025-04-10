@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voiture Projet</title>
+    <link href="https://fonts.googleapis.com/css?family=Helvetica:300,400,500&display=swap" rel="stylesheet">
+    <style>
+        @import url(https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap);
+
+        /* Réinitialisation */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #4b79a1);
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 300;
+            font-size: 2.8rem;
+            margin-bottom: 30px;
+            font-family: "Unbounded", serif;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background-color: #1abc9c;
+            border: none;
+            border-radius: 30px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 15px 30px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #16a085;
+            transform: translateY(-2px);
+        }
+
+        #distances {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        #distances h2 {
+            margin-bottom: 15px;
+            font-weight: 400;
+            font-size: 1.6rem;
+            font-family: "Unbounded", serif;
+        }
+
+        #distances p {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            #distances h2 {
+                font-size: 1.5rem;
+            }
+
+            #distances p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚗 Voiture Projet</h1>
+        <div id="status" style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <div id="status-indicator"
+                style="width: 15px; height: 15px; border-radius: 50%; background-color: gray; margin-right: 10px;">
+            </div>
+            <span id="status-text">Vérification du statut...</span>
+        </div>
+
+        <form method="post" action="/action">
+            <button type="submit" name="action" value="lancer">🟢 Lancer la voiture</button>
+            <button type="submit" name="action" value="arreter">🛑 Force Stop</button>
+            <button type="submit" name="action" value="reset">🟠 Réinitialiser</button>
+            <button type="submit" name="action" value="avancer">Faire avancer (test)</button>
+        </form>
+        <div id="distances">
+            <h2>Mesures des capteurs</h2>
+            <p>Avant: <span id="front">N/A</span> cm</p>
+            <p>Gauche: <span id="left">N/A</span> cm</p>
+            <p>Droit: <span id="right">N/A</span> cm</p>
+            <p>Vitesse: <span id="speed">N/A</span> m/s</p>
+        </div>
+    </div>
+    <script>
+        function updateData() {
+            fetch('/api/distances')
+                .then(response => {
+                    if (!response.ok) throw new Error('Réponse non valide');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('front').textContent = data.front.toFixed(2);
+                    document.getElementById('left').textContent = data.left.toFixed(2);
+                    document.getElementById('right').textContent = data.right.toFixed(2);
+                    document.getElementById('speed').textContent = data.speed.toFixed(2);
+
+                    // Capteurs en ligne
+                    document.getElementById('status-indicator').style.backgroundColor = 'limegreen';
+                    document.getElementById('status-text').textContent = 'En ligne';
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des données:', error);
+
+                    // Capteurs hors ligne
+                    document.getElementById('front').textContent = 'N/A';
+                    document.getElementById('left').textContent = 'N/A';
+                    document.getElementById('right').textContent = 'N/A';
+                    document.getElementById('speed').textContent = 'N/A';
+
+                    document.getElementById('status-indicator').style.backgroundColor = 'red';
+                    document.getElementById('status-text').textContent = 'Hors ligne';
+                });
+        }
+
+        setInterval(updateData, 1000);
+        updateData(); // appel initial immédiat
+    </script>
+
+</body>
+
+</html>
