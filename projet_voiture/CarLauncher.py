@@ -16,7 +16,7 @@ class CarLauncher:
         self.car_controller = car_controller
 
     def launch(self):
-        self.car_controller.run()
+        self.car_controller.mode_course()
 
     def shutdown(self):
         print("🔒 Arrêt de la voiture en cours...")
