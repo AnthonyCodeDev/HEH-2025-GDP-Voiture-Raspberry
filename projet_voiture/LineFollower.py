@@ -33,18 +33,18 @@ class LineFollower:
         - 2ème détection : arrêt immédiat via car_launcher.
         """
         print("🚦 Surveillance de ligne activée...")
-        while self.monitoring:
-            if not self.sensor.is_active:
-                if not self.first_triggered:
-                    print("⚠️ Première ligne noire détectée. Pause de sécurité...")
-                    self.first_triggered = True
-                    sleep(5)  # Pause sans désactiver la voiture
-                    print("✅ Reprise de la surveillance de ligne.")
-                else:
-                    print("⬛ Ligne noire détectée à nouveau ! Arrêt immédiat de la voiture.")
-                    car_launcher.shutdown()
-                    self.monitoring = False
-            sleep(0.2)
+        # while self.monitoring:
+        #     if not self.sensor.is_active:
+        #         if not self.first_triggered:
+        #             print("⚠️ Première ligne noire détectée. Pause de sécurité...")
+        #             self.first_triggered = True
+        #             sleep(10)  # Pause sans désactiver la voiture
+        #             print("✅ Reprise de la surveillance de ligne.")
+        #         else:
+        #             print("⬛ Ligne noire détectée à nouveau ! Arrêt immédiat de la voiture.")
+        #             car_launcher.shutdown()
+        #             self.monitoring = False
+        #     sleep(0.2)
 
     def stop_monitoring(self):
         self.monitoring = False

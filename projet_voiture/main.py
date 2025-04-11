@@ -75,9 +75,9 @@ class MainController:
         self.logger.log("Surveillance RGB lancée.", "lancement_voiture", "INFO")
 
         # Démarrage de la surveillance de ligne noire dans un thread séparé
-        line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
-        line_thread.daemon = True
-        line_thread.start()
+        # line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
+        # line_thread.daemon = True
+        # line_thread.start()
 
         # Boucle principale pour maintenir le programme actif
         try:
