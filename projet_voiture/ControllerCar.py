@@ -306,22 +306,40 @@ class ControllerCar:
         except Exception as e:
             print("Erreur pendant la rotation (avec virage) :", e)
 
-    def faire_demi_tour(self, duration=3, speed=35):
+    def faire_demi_tour(self):
         """
-        Faire demi tour
+        Effectue un demi-tour sur place :
+        - Avance avec roues tournées à gauche
+        - Recule avec roues tournées à droite
+        - Avance droit pour repartir dans l'autre direction
         """
         try:
-            print("🔁 Rotation simulée avec virage constant...")
-            self.servo_ctrl.rotate(self.angle_virage_droite)  # Direction vers la droite
-            self.motor_ctrl.forward(speed)
-            self.current_speed = speed / 100 * self.max_speed
-            time.sleep(duration)
+            print("↩️ Je fais un demi-tour...")
+
+            # 1. Roues à gauche (0°) + avance
+            self.servo_ctrl.rotate(0)
+            self.motor_ctrl.forward(30)
+            time.sleep(1.8)
+
+            # 2. Roues à droite (90°) + recule
+            self.servo_ctrl.rotate(90)
+            self.motor_ctrl.backward(-35)
+            time.sleep(2)
+
+            # 3. Pause + recentrage
             self.motor_ctrl.stop()
+            self.servo_ctrl.setToDegree(45)
             time.sleep(0.5)
-            self.servo_ctrl.setToDegree(self.angle_central)
-            self.current_speed = 0.0
-            print("🛑 Rotation terminée (avec virage)")
+
+            # 4. Avance droite pour terminer le demi-tour
+            self.motor_ctrl.forward(30)
+            self.current_speed = self.max_speed
+            time.sleep(1)
+
+            self.motor_ctrl.stop()
+            print("✅ Demi-tour terminé.")
+
         except Exception as e:
-            print("Erreur pendant la rotation (avec virage) :", e)
+            print("❌ Erreur pendant le demi-tour :", e)
 
     
