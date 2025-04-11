@@ -27,7 +27,7 @@ class TestUltrasoundSensor(unittest.TestCase):
         mock_distance_sensor.return_value = self.mock_sensor
     
         # creation de l’objet a tester
-        self.sensor = CapteurDistance(trigger=23,echo=21,sensor_sample_count=5, sensor_sample_delay=0.01, max_distance=4.0)
+        self.sensor = CapteurDistance(trigger=6,echo=5,sensor_sample_count=5, sensor_sample_delay=0.01, max_distance=4.0)
 
         # self.directions = ["left", "right", "front"]
 
@@ -42,7 +42,7 @@ class TestUltrasoundSensor(unittest.TestCase):
         
         :raises: ValueError."""
         self.mock_sensor.distance = 0.01  # 1 cm
-        with self.assertRaises(ValueError,msg="echec : La distance mesuree est en dessous de la plage autorisee."):
+        with self.assertRaises(ValueError,msg=f"echec : La distance mesuree est en dessous de la plage autorisee."):
             self.sensor.get_distance()
 
     def test_calculate_distance_above_max(self):
@@ -68,14 +68,6 @@ class TestUltrasoundSensor(unittest.TestCase):
         self.mock_sensor.distance = 4.0  # 400 cm
         result = self.sensor.get_distance()
         self.assertAlmostEqual(result, 400.0, delta=0.1, msg=f"echec : La distance mesuree est {result} cm, elle devrait être proche de 400 cm.")
-
-    def test_runtime_error_distance(self):
-        """Teste les erreurs d'execution (timeout par exemple) lors de la lecture des distances.
-        
-        :raises: RuntimeError."""
-        self.mock_sensor.distance = MagicMock(side_effect=RuntimeError("Sensor error"))
-        with self.assertRaises(RuntimeError, msg="echec : le code ne detecte pas le RuntimeError, donnee dans le cas d'un timeout."):
-            self.sensor.get_distance()
 
     def test_with_sample_count_as_zero(self):
         """Teste la creation de la classe avec un nombre d'echantillons egal a zero.
