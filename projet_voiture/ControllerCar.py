@@ -282,13 +282,13 @@ class ControllerCar:
             print("🔁 Rotation sur place...")
             pwm_val = self.motor_ctrl._MotorController__scale_speed(speed)
             self.motor_ctrl._MotorController__apply_motor_state(
-                self.motor_ctrl._MotorController__moteur0_pin_a,
-                self.motor_ctrl._MotorController__moteur0_pin_b,
+                self.motor_ctrl.moteur0_pin_a,
+                self.motor_ctrl.moteur0_pin_b,
                 pwm_val
             )
             self.motor_ctrl._MotorController__apply_motor_state(
-                self.motor_ctrl._MotorController__moteur1_pin_a,
-                self.motor_ctrl._MotorController__moteur1_pin_b,
+                self.motor_ctrl.moteur1_pin_a,
+                self.motor_ctrl.moteur1_pin_b,
                 -pwm_val
             )
             time.sleep(duration)
