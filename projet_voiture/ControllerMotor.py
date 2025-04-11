@@ -26,6 +26,30 @@ class ControllerMotor:
         self.__moteur0_pin_b = 18
         self.__moteur1_pin_b = 22
 
+        @property
+        def moteur0_enable_pin(self):
+            return self.__moteur0_enable_pin
+        
+        @property
+        def moteur1_enable_pin(self):
+            return self.__moteur1_enable_pin
+        
+        @property
+        def moteur0_pin_a(self):
+            return self.__moteur0_pin_a
+        
+        @property
+        def moteur1_pin_a(self):
+            return self.__moteur1_pin_a
+        
+        @property
+        def moteur0_pin_b(self):
+            return self.__moteur0_pin_b
+        
+        @property
+        def moteur1_pin_b(self):
+            return self.__moteur1_pin_b
+
         self.__gpio_pins = [
             self.__moteur0_pin_a,
             self.__moteur0_pin_b,

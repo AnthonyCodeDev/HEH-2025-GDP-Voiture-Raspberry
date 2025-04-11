@@ -16,6 +16,7 @@ from ControllerMotor import ControllerMotor
 from ControllerServo import ControllerServo
 from CapteurDistance import CapteurDistance
 import RPi.GPIO as GPIO
+import math
 
 class ControllerCar:
     """
@@ -198,6 +199,34 @@ class ControllerCar:
         Renvoie la vitesse actuelle du véhicule en m/s.
         """
         return self.current_speed
+    
+    def restart_car(self):
+        """
+        Redémarre le module : arrêt des moteurs, remise de la vitesse à 0 et réinitialisation de la position du servo.
+        Le module est ensuite en attente d'une commande de démarrage (LED verte ou bouton start).
+        """
+        print("🔄 Redémarrage du module (restart_car) en cours...")
+        # Arrêt en douceur des moteurs
+        self.motor_ctrl.stop()
+        self.current_speed = 0.0
+
+        try:
+            # Séquence d'initialisation du servo (similaire à celle du main.py)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(0)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(90)
+            time.sleep(0.3)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            time.sleep(0.3)
+            self.servo_ctrl.disable_pwm()
+        except Exception as e:
+            print("Erreur lors de la réinitialisation du servo dans restart_car :", e)
+
+        print("🔄 Module relancé, en attente d'une commande de démarrage (LED verte ou bouton start).")
 
     
     def tour_en_8(self, speed=35, cycle_time=12, dt=0.03, cycles=3, amplitude=20):
@@ -212,6 +241,8 @@ class ControllerCar:
         :param dt: Intervalle de temps entre deux mises à jour du servo.
         :param cycles: Nombre de cycles (8) à réaliser.
         :param amplitude: Amplitude de l'oscillation du servo (en degrés).
+
+        :raises Exception: Si une erreur se produit pendant l'exécution.
         """
         try:
             print("🎯 Lancement du parcours en 8...")
@@ -244,6 +275,8 @@ class ControllerCar:
         
         Attention : cette méthode utilise les attributs internes du moteur (précédés de __)
         et réalise une gestion directe. Assurez-vous que cela correspond à votre implémentation.
+
+        :raises Exception: Si une erreur se produit pendant la rotation.
         """
         try:
             print("🔁 Rotation sur place...")

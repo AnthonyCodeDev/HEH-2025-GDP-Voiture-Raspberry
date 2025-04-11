@@ -23,6 +23,17 @@ from VoitureController import VoitureController
 
 class VoitureServer:
     def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None, car_launcher=None):
+        """
+        Initialise le serveur web pour contrôler la voiture.
+        Permet de lancer le contrôle autonome via ControllerCar ou d'avancer la voiture en mode simple.
+        Fournit également une API pour obtenir les mesures des capteurs de distance et la vitesse.
+
+        :param host: Adresse IP du serveur (par défaut '0.0.0.0')
+        :param port: Port du serveur (par défaut 5000).
+        :param autonomous_controller: Instance de ControllerCar pour le contrôle autonome.
+        :param car_launcher: Instance de CarLauncher qui permet de lancer le contrôle autonome.
+
+        """
         self.host = host
         self.port = port
         self.app = Flask(__name__, template_folder='templates')
@@ -57,6 +68,18 @@ class VoitureServer:
         elif action == 'arreter':
             print("🛑 Arrêt demandé via interface web")
             self.car_launcher.shutdown()
+        elif action == 'relancer':
+            print("🔄 Relance du module : appel à restart_car() dans ControllerCar")
+            self.autonomous_controller.restart_car()
+        elif action == 'tour_en_8':
+            print("♾️ Tour en 8 lancé")
+            thread = threading.Thread(target=self.autonomous_controller.tour_en_8)
+            thread.start()
+        elif action == 'rotation':
+            print("🔁 Rotation sur place lancée")
+            thread = threading.Thread(target=self.autonomous_controller.rotation_sur_place)
+            thread.start()
+        
         return redirect(url_for('index'))
 
     def api_distances(self):
