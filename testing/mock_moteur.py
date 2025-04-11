@@ -77,7 +77,7 @@ class TestMotorController(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.controller.backward(50)
 
-    def test_innit(self):
+    def test_init(self):
         """
         Test du constructeur de ControllerMotor pour s'assurer que les attributs principaux
         sont bien initialisés et que l'objet PWM mocké est utilisé.
