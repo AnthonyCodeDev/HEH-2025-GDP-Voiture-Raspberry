@@ -19,29 +19,30 @@ class ControllerMotor:
         Date   : 08-04-2025
         Quoi   : Contrôle de deux moteurs à courant continu via un pont en H.
         """
-        self.__moteur0_enable_pin = 4
-        self.__moteur1_enable_pin = 5
-        self.__moteur0_pin_a = 17
-        self.__moteur1_pin_a = 27
-        self.__moteur0_pin_b = 18
-        self.__moteur1_pin_b = 22
+        self._moteur0_enable_pin = 4
+        self._moteur1_enable_pin = 5
+        self._moteur0_pin_a = 17
+        self._moteur1_pin_a = 27
+        self._moteur0_pin_b = 18
+        self._moteur1_pin_b = 22
+
 
         self.__gpio_pins = [
-            self.__moteur0_pin_a,
-            self.__moteur0_pin_b,
-            self.__moteur1_pin_a,
-            self.__moteur1_pin_b
+            self._moteur0_pin_a,
+            self._moteur0_pin_b,
+            self._moteur1_pin_a,
+            self._moteur1_pin_b
         ]
         
-        self.__pwm_controller = PCA.PWM()
-        self.__pwm_controller.frequency = 60
+        self._pwm_controller = PCA.PWM()
+        self._pwm_controller.frequency = 60
         
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         for pin in self.__gpio_pins:
             GPIO.setup(pin, GPIO.OUT)
 
-    def __apply_motor_state(self, pin_a, pin_b, pwm_value):
+    def _apply_motor_state(self, pin_a, pin_b, pwm_value):
         """
         Applique l'état des sorties pour un moteur.
 
@@ -55,8 +56,8 @@ class ControllerMotor:
         """
         GPIO.output(pin_a, GPIO.HIGH if pwm_value > 0 else GPIO.LOW)
         GPIO.output(pin_b, GPIO.LOW if pwm_value > 0 else GPIO.HIGH)
-        channel = self.__moteur0_enable_pin if pin_a == self.__moteur0_pin_a else self.__moteur1_enable_pin
-        self.__pwm_controller.write(channel, 0, int(abs(pwm_value)))
+        channel = self._moteur0_enable_pin if pin_a == self._moteur0_pin_a else self._moteur1_enable_pin
+        self._pwm_controller.write(channel, 0, int(abs(pwm_value)))
 
     def forward(self, speed=100):
         """
@@ -68,9 +69,9 @@ class ControllerMotor:
         Date   : 08-04-2025
         Quoi   : Faire avancer les moteurs à la vitesse spécifiée.
         """
-        pwm_val = self.__scale_speed(speed)
-        self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, pwm_val)
-        self.__apply_motor_state(self.__moteur1_pin_a, self.__moteur1_pin_b, pwm_val)
+        pwm_val = self._scale_speed(speed)
+        self._apply_motor_state(self._moteur0_pin_a, self._moteur0_pin_b, pwm_val)
+        self._apply_motor_state(self._moteur1_pin_a, self._moteur1_pin_b, pwm_val)
 
     def backward(self, speed=-100):
         """
@@ -83,9 +84,9 @@ class ControllerMotor:
         Quoi   : Faire reculer les moteurs à la vitesse spécifiée.
         """
         if speed < 0:
-            pwm_val = self.__scale_speed(speed)
-            self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, pwm_val)
-            self.__apply_motor_state(self.__moteur1_pin_a, self.__moteur1_pin_b, pwm_val)
+            pwm_val = self._scale_speed(speed)
+            self._apply_motor_state(self._moteur0_pin_a, self._moteur0_pin_b, pwm_val)
+            self._apply_motor_state(self._moteur1_pin_a, self._moteur1_pin_b, pwm_val)
         else:
             raise ValueError("La vitesse doit être négative pour le mouvement arrière")
 
@@ -97,10 +98,10 @@ class ControllerMotor:
         Date   : 08-04-2025
         Quoi   : Arrêter les moteurs.
         """
-        self.__apply_motor_state(self.__moteur0_pin_a, self.__moteur0_pin_b, 0)
-        self.__apply_motor_state(self.__moteur1_pin_a, self.__moteur1_pin_b, 0)
+        self._apply_motor_state(self._moteur0_pin_a, self._moteur0_pin_b, 0)
+        self._apply_motor_state(self._moteur1_pin_a, self._moteur1_pin_b, 0)
 
-    def __scale_speed(self, speed):
+    def _scale_speed(self, speed):
         """
         Convertit une vitesse de 0 à 100 en une valeur PWM comprise entre 0 et 4095.
 

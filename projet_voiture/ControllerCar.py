@@ -34,22 +34,22 @@ class ControllerCar:
             return
 
         # Seuils de détection (en cm)
-        self.side_threshold = 12         # Seuil pour obstacles latéraux
-        self.front_threshold = 41        # Seuil pour alerte obstacle frontal
-        self.emergency_threshold = 40    # Seuil pour urgence obstacle frontal
+        self.side_threshold = 17         # Seuil pour obstacles latéraux
+        self.front_threshold = 30        # Seuil pour alerte obstacle frontal
+        self.emergency_threshold = 30    # Seuil pour urgence obstacle frontal
 
         # Paramètres de virage
-        self.angle_virage_gauche = -30
-        self.angle_virage_droite = 30
+        self.angle_virage_gauche = 0
+        self.angle_virage_droite = 45
         self.angle_central = 45
 
         # Durées (en secondes)
-        self.duree_virage = 0.4
-        self.duree_marche_arriere = 0.35
+        self.duree_virage = 0.3
+        self.duree_marche_arriere = 0.4
         self.reverse_pause = 0.5
 
         # Création des trois capteurs en instanciant la classe CapteurDistance
-        max_distance = 4  # Distance maximale en mètres détectable par les capteurs
+        max_distance = 1
 
         self.capteur_left = CapteurDistance(trigger=26, echo=19, max_distance=max_distance)
         self.capteur_right = CapteurDistance(trigger=11, echo=9, max_distance=max_distance)
@@ -67,8 +67,8 @@ class ControllerCar:
 
         self._initialized = True
 
-        self.motor_speed_forwards = 35
-        self.motor_speed_backwards = 40
+        self.motor_speed_forwards = 20
+        self.motor_speed_backwards = 25
 
     def run(self):
         """
@@ -106,11 +106,7 @@ class ControllerCar:
                 elif distance_right < self.side_threshold:
                     self.handle_right_obstacle()
 
-                # Vous pouvez déclencher les manœuvres spéciales par commande externe :
-                # Par exemple, si une condition particulière est remplie :
-                # self.rotation_sur_place(duration=5, speed=80)
-                # ou
-                # self.tour_en_8(speed=35, cycle_time=12, dt=0.03, cycles=3, amplitude=20)
+                time.sleep(0.2)
 
         except KeyboardInterrupt:
             print("Ctrl+C détecté : arrêt en cours...")
@@ -127,7 +123,7 @@ class ControllerCar:
         self.motor_ctrl.backward(-self.motor_speed_backwards)
         self.current_speed = -0.5  # Vitesse de recul simulée
         time.sleep(self.duree_marche_arriere * 1.5)
-        self.turn_to_most_space()
+        self.turn_to_most_space_for_forwards_sensor()
         self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed  # Reprise de la vitesse
 
@@ -148,6 +144,21 @@ class ControllerCar:
 
     def turn_to_most_space(self):
         """Tourne vers le côté où il y a le plus d'espace disponible."""
+        distance_left = self.capteur_left.get_distance()
+        distance_right = self.capteur_right.get_distance()
+        
+        if distance_left > distance_right:
+            print("Plus d'espace à gauche - virage à droite")
+            self.servo_ctrl.rotate(self.angle_virage_droite)
+        else:
+            print("Plus d'espace à droite - virage à gauche")
+            self.servo_ctrl.rotate(self.angle_virage_gauche)
+        
+        time.sleep(self.duree_virage)
+        self.servo_ctrl.setToDegree(self.angle_central)
+
+    def turn_to_most_space_for_forwards_sensor(self):
+        """Tourne vers le côté où il y a le plus d'espace disponible pour devant."""
         distance_left = self.capteur_left.get_distance()
         distance_right = self.capteur_right.get_distance()
         
@@ -188,8 +199,10 @@ class ControllerCar:
         print(f"Obstacle détecté sur le côté droit ({round(distance_right, 2)} cm). Virage à droite.")
         self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = 0.5
+        print("On dois rotate de " + str(self.angle_virage_droite))
         self.servo_ctrl.rotate(self.angle_virage_droite)
         time.sleep(self.duree_virage)
+        print("on se recentre")
         self.servo_ctrl.setToDegree(self.angle_central)
         self.motor_ctrl.forward(self.motor_speed_forwards)
         self.current_speed = self.max_speed
@@ -234,66 +247,81 @@ class ControllerCar:
         """
         return self.current_speed
 
-    def rotation_sur_place(self, duration=10, speed=100):
-        """
-        Fait tourner la voiture sur elle-même (rotation différentielle) pendant une durée donnée.
-        Un moteur est commandé en avant et l'autre en arrière.
-        
-        :param duration: Durée de la rotation en secondes (par défaut 10).
-        :param speed: Vitesse de rotation (0 à 100).
-        
-        Attention : cette méthode utilise les attributs internes du moteur (précédés de __)
-        et réalise une gestion directe. Assurez-vous que cela correspond à votre implémentation.
-        """
-        try:
-            print("🔁 Rotation sur place...")
-            pwm_val = self.motor_ctrl._MotorController__scale_speed(speed)
-            self.motor_ctrl._MotorController__apply_motor_state(
-                self.motor_ctrl._MotorController__moteur0_pin_a,
-                self.motor_ctrl._MotorController__moteur0_pin_b,
-                pwm_val
-            )
-            self.motor_ctrl._MotorController__apply_motor_state(
-                self.motor_ctrl._MotorController__moteur1_pin_a,
-                self.motor_ctrl._MotorController__moteur1_pin_b,
-                -pwm_val
-            )
-            time.sleep(duration)
-            print("🛑 Arrêt du mouvement")
-            self.motor_ctrl.stop()
-        except Exception as e:
-            print("Erreur pendant la rotation sur place :", e)
 
-    def tour_en_8(self, speed=35, cycle_time=12, dt=0.03, cycles=3, amplitude=20):
+    def tour_en_8(self, speed=35):
         """
-        Réalise un parcours en 8.
-        
-        Pendant chaque cycle, le servo module sa position en fonction d'une fonction sinusoïdale,
-        ce qui crée une trajectoire en 8 lorsque la voiture avance.
-        
-        :param speed: Vitesse de déplacement pendant le 8.
-        :param cycle_time: Durée d'un cycle complet (influence la fréquence des oscillations).
-        :param dt: Intervalle de temps entre deux mises à jour du servo.
-        :param cycles: Nombre de cycles (8) à réaliser.
-        :param amplitude: Amplitude de l'oscillation du servo (en degrés).
+        Réalise un parcours en forme de 8 (∞) :
+        - Un virage à droite en avançant (boucle 1)
+        - Puis un virage à gauche en avançant (boucle 2)
+
+        :param speed: Vitesse d’avancement.
         """
         try:
-            print("🎯 Lancement du parcours en 8...")
-            for _ in range(cycles):
-                start = time.time()
-                while time.time() - start < cycle_time:
-                    t = time.time() - start
-                    # Calcule l'angle du servo : position centrale 45° modulée par une sinusoïde.
-                    angle = 45 + amplitude * math.sin(2 * math.pi * t / cycle_time)
-                    self.servo_ctrl.setToDegree(angle)
-                    self.motor_ctrl.forward(speed)
-                    time.sleep(dt)
+            print("🔁 Début du tour en 8...")
+
+            # 1. Virage à droite
+            print("➰ Boucle droite...")
+            self.servo_ctrl.rotate(45)
+            self.motor_ctrl.forward(speed)
+            time.sleep(6)
+            self.servo_ctrl.rotate(0)
+            time.sleep(4)
+            self.servo_ctrl.rotate(45)
             self.motor_ctrl.stop()
-            self.servo_ctrl.setToDegree(45)
-            print("✅ Parcours en 8 terminé.")
+            time.sleep(0.5)
+            print("✅ Tour en 8 terminé.")
         except Exception as e:
             print("Erreur pendant le tour en 8 :", e)
         finally:
             self.motor_ctrl.stop()
             self.servo_ctrl.disable_pwm()
-            print("Fin de la manœuvre 'tour en 8'.")
+            print("🛑 Fin de la manœuvre 'tour'")
+
+
+    def get_distances(self):
+        """
+        Renvoie les distances actuelles mesurées par les capteurs avant, gauche et droite.
+        """
+        return {
+            "front": round(self.capteur_front.get_distance(), 2),
+            "left": round(self.capteur_left.get_distance(), 2),
+            "right": round(self.capteur_right.get_distance(), 2)
+        }
+
+    def rotation_sur_place(self, duration=5.8, speed=35):
+        """
+        Simule une rotation continue en avançant avec les roues tournées.
+        """
+        try:
+            print("🔁 Rotation simulée avec virage constant...")
+            self.servo_ctrl.rotate(self.angle_virage_droite)  # Direction vers la droite
+            self.motor_ctrl.forward(speed)
+            self.current_speed = speed / 100 * self.max_speed
+            time.sleep(duration)
+            self.motor_ctrl.stop()
+            time.sleep(0.5)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            self.current_speed = 0.0
+            print("🛑 Rotation terminée (avec virage)")
+        except Exception as e:
+            print("Erreur pendant la rotation (avec virage) :", e)
+
+    def faire_demi_tour(self, duration=3, speed=35):
+        """
+        Faire demi tour
+        """
+        try:
+            print("🔁 Rotation simulée avec virage constant...")
+            self.servo_ctrl.rotate(self.angle_virage_droite)  # Direction vers la droite
+            self.motor_ctrl.forward(speed)
+            self.current_speed = speed / 100 * self.max_speed
+            time.sleep(duration)
+            self.motor_ctrl.stop()
+            time.sleep(0.5)
+            self.servo_ctrl.setToDegree(self.angle_central)
+            self.current_speed = 0.0
+            print("🛑 Rotation terminée (avec virage)")
+        except Exception as e:
+            print("Erreur pendant la rotation (avec virage) :", e)
+
+    

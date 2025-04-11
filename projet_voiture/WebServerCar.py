@@ -21,6 +21,10 @@ import RPi.GPIO as GPIO
 from ControllerCar import ControllerCar
 from VoitureController import VoitureController
 
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 class VoitureServer:
     def __init__(self, host='0.0.0.0', port=5000, autonomous_controller=None, car_launcher=None):
         """
@@ -78,6 +82,10 @@ class VoitureServer:
         elif action == 'rotation':
             print("🔁 Rotation sur place lancée")
             thread = threading.Thread(target=self.autonomous_controller.rotation_sur_place)
+            thread.start()
+        elif action == 'tour':
+            print("🔁 Rotation sur place lancée")
+            thread = threading.Thread(target=self.autonomous_controller.faire_demi_tour)
             thread.start()
         
         return redirect(url_for('index'))

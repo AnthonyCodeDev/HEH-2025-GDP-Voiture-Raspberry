@@ -17,7 +17,7 @@ import os
 from ControllerCar import ControllerCar
 from WebServerCar import VoitureServer
 from CapteurRGB import CapteurRGB
-# from LineFollower import LineFollower
+from LineFollower import LineFollower
 from CarLauncher import CarLauncher
 from Logging import Logging
 
@@ -43,7 +43,7 @@ class MainController:
 
         self.web_server = VoitureServer(host='0.0.0.0', port=5000, autonomous_controller=self.car_controller, car_launcher=self.car_launcher)
 
-        # self.line_follower = LineFollower()
+        self.line_follower = LineFollower()
 
         self.logger.log("Mise en position initiale des roues (45°).", "lancement_voiture", "INFO")
         self.car_controller.servo_ctrl.setToDegree(self.car_controller.angle_central)
@@ -75,11 +75,9 @@ class MainController:
         self.logger.log("Surveillance RGB lancée.", "lancement_voiture", "INFO")
 
         # Démarrage de la surveillance de ligne noire dans un thread séparé
-        # line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
-        # line_thread.daemon = True
-        # line_thread.start()
-        # print("🛣️ Surveillance de ligne lancée.")
-
+        line_thread = threading.Thread(target=self.line_follower.monitor, args=(self.car_launcher,))
+        line_thread.daemon = True
+        line_thread.start()
 
         # Boucle principale pour maintenir le programme actif
         try:
@@ -93,3 +91,7 @@ class MainController:
         self.logger.log("Arrêt des services en cours...", "lancement_voiture", "INFO")
         self.car_launcher.shutdown()
         self.logger.log("Services fermés proprement.", "lancement_voiture", "INFO")
+
+if __name__ == '__main__':
+    main_controller = MainController()
+    main_controller.start_services()
