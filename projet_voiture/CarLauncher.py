@@ -8,6 +8,11 @@ class CarLauncher:
     QUOI: Utilise une instance existante de ControllerCar pour démarrer le contrôle autonome.
     """
     def __init__(self, car_controller):
+        """
+        Initialise le lanceur de voiture avec un contrôleur de voiture existant.
+        
+        :param car_launcher: Instance de CarLauncher qui permet de lancer le contrôle autonome.
+        """
         self.car_controller = car_controller
 
     def launch(self):
