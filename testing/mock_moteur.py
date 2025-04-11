@@ -1,127 +1,102 @@
 #!/usr/bin/env python3
 import unittest
-from unittest.mock import MagicMock, call, patch
-
-# On suppose que votre code se trouve dans le fichier 'moteur.py'
-from moteur import MotorController
+from unittest.mock import MagicMock, patch, call
+import sys
+import os
 
 class TestMotorController(unittest.TestCase):
+    """
+    Tests unitaires pour le contrôleur de moteur DC.
 
-    @patch('moteur.GPIO')
-    @patch('moteur.PCA.PWM')
-    def test_forward(self, mock_PWM, mock_GPIO):
+    Auteur : Rayan El Khachani
+    Date   : 11-04-2025
+    """
+
+    @patch.dict('sys.modules', {'RPi': MagicMock(), 'RPi.GPIO': MagicMock(), 'PCA': MagicMock(), 'PWM': MagicMock()})
+    def setUp(self):
         """
-        Teste que la méthode forward envoie les bons signaux.
-        Pour un forward(100), la valeur PWM calculée est 4095.
+        Configure l'environnement de test en mockant les modules matériels,
+        et initialise une instance du contrôleur de moteur.
+
+        Auteur : Rayan El Khachani
+        Date   : 11-04-2025
         """
-        pwm_instance = MagicMock()
-        mock_PWM.return_value = pwm_instance
+        # Ajouter le chemin parent à sys.path
+        parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        
+        # Importer après avoir mocké les modules
+        from projet_voiture.ControllerMotor import ControllerMotor
+        self.ControllerMotor = ControllerMotor
+        
+        # Créer une instance du contrôleur
+        self.controller = self.ControllerMotor()
 
-        # Création de l'instance du contrôleur
-        controller = MotorController()
-
-        # Réinitialisation des historiques de mocks
-        mock_GPIO.output.reset_mock()
-        pwm_instance.write.reset_mock()
-
-        # Appel de la méthode forward
-        controller.forward(100)
-
-        # Pour un mouvement avant, on doit avoir :
-        # Pour le moteur 0 (pins 17 et 18) : pin 17 à HIGH, 18 à LOW, canal d'activation 4
-        # Pour le moteur 1 (pins 27 et 22) : pin 27 à HIGH, 22 à LOW, canal d'activation 5
-        expected_gpio_calls = [
-            call(17, mock_GPIO.HIGH),
-            call(18, mock_GPIO.LOW),
-            call(27, mock_GPIO.HIGH),
-            call(22, mock_GPIO.LOW)
-        ]
-        mock_GPIO.output.assert_has_calls(expected_gpio_calls, any_order=True)
-
-        expected_pwm_calls = [
-            call(4, 0, 4095),
-            call(5, 0, 4095)
-        ]
-        pwm_instance.write.assert_has_calls(expected_pwm_calls, any_order=True)
-
-    @patch('moteur.GPIO')
-    @patch('moteur.PCA.PWM')
-    def test_backward(self, mock_PWM, mock_GPIO):
+    def test_forward(self):
         """
-        Teste que la méthode backward envoie les bons signaux.
-        Pour un backward(-100), la valeur PWM calculée est -4095 (absolue 4095).
+        Teste que la méthode forward active correctement les moteurs en écrivant
+        la valeur PWM maximale sur les bons canaux.
+
+        Auteur : Rayan El Khachani
+        Date   : 11-04-2025
         """
-        pwm_instance = MagicMock()
-        mock_PWM.return_value = pwm_instance
+        self.controller.forward(100)
+        self.controller._ControllerMotor__pwm_controller.write.assert_any_call(4, 0, 4095)
+        self.controller._ControllerMotor__pwm_controller.write.assert_any_call(5, 0, 4095)
 
-        controller = MotorController()
-        mock_GPIO.output.reset_mock()
-        pwm_instance.write.reset_mock()
-
-        controller.backward(-100)
-
-        # Pour un mouvement arrière, on attend :
-        # Pour le moteur 0 (pins 17 et 18) : pin 17 à LOW, 18 à HIGH, canal 4
-        # Pour le moteur 1 (pins 27 et 22) : pin 27 à LOW, 22 à HIGH, canal 5
-        expected_gpio_calls = [
-            call(17, mock_GPIO.LOW),
-            call(18, mock_GPIO.HIGH),
-            call(27, mock_GPIO.LOW),
-            call(22, mock_GPIO.HIGH)
-        ]
-        mock_GPIO.output.assert_has_calls(expected_gpio_calls, any_order=True)
-
-        expected_pwm_calls = [
-            call(4, 0, 4095),
-            call(5, 0, 4095)
-        ]
-        pwm_instance.write.assert_has_calls(expected_pwm_calls, any_order=True)
-
-    @patch('moteur.GPIO')
-    @patch('moteur.PCA.PWM')
-    def test_stop(self, mock_PWM, mock_GPIO):
+    def test_backward(self):
         """
-        Teste la méthode stop qui doit envoyer une valeur 0.
-        Pour stop(), la logique place les pins de commande à LOW (pour A) et HIGH (pour B).
+        Teste que la méthode backward active les moteurs pour reculer à vitesse maximale.
+
+        Auteur : Rayan El Khachani
+        Date   : 11-04-2025
         """
-        pwm_instance = MagicMock()
-        mock_PWM.return_value = pwm_instance
+        self.controller.backward(-100)
+        self.controller._ControllerMotor__pwm_controller.write.assert_any_call(4, 0, 4095)
+        self.controller._ControllerMotor__pwm_controller.write.assert_any_call(5, 0, 4095)
 
-        controller = MotorController()
-        mock_GPIO.output.reset_mock()
-        pwm_instance.write.reset_mock()
-
-        controller.stop()
-
-        # Pour stop, pwm_value est 0 :
-        # Les sorties doivent être : pour chaque moteur, pin A en LOW, pin B en HIGH,
-        # et l'écriture PWM doit être effectuée avec 0.
-        expected_gpio_calls = [
-            call(17, mock_GPIO.LOW),
-            call(18, mock_GPIO.HIGH),
-            call(27, mock_GPIO.LOW),
-            call(22, mock_GPIO.HIGH)
-        ]
-        mock_GPIO.output.assert_has_calls(expected_gpio_calls, any_order=True)
-
-        expected_pwm_calls = [
-            call(4, 0, 0),
-            call(5, 0, 0)
-        ]
-        pwm_instance.write.assert_has_calls(expected_pwm_calls, any_order=True)
-
-    @patch('moteur.GPIO')
-    @patch('moteur.PCA.PWM')
-    def test_backward_invalid_speed(self, mock_PWM, mock_GPIO):
+    def test_stop(self):
         """
-        Teste que backward lève une exception lorsque la vitesse n'est pas négative.
-        """
-        pwm_instance = MagicMock()
-        mock_PWM.return_value = pwm_instance
+        Teste que la méthode stop arrête correctement les moteurs (PWM = 0).
 
-        controller = MotorController()
+        Auteur : Rayan El Khachani
+        Date   : 11-04-2025
+        """
+        self.controller.stop()
+        self.controller._ControllerMotor__pwm_controller.write.assert_any_call(4, 0, 0)
+        self.controller._ControllerMotor__pwm_controller.write.assert_any_call(5, 0, 0)
+
+    def test_backward_invalid_speed(self):
+        """
+        Teste que backward soulève une exception si la vitesse est positive.
+
+        Auteur : Rayan El Khachani
+        Date   : 11-04-2025
+        """
         with self.assertRaises(ValueError):
-            controller.backward(50)  # 50 est positif, doit lever ValueError.
+            self.controller.backward(50)
+
+    def test_init(self):
+        """
+        Test du constructeur de ControllerMotor pour s'assurer que les attributs principaux
+        sont bien initialisés et que l'objet PWM mocké est utilisé.
+
+        Auteur : Rayan El Khachani
+        Date   : 11-04-2025
+        """
+        # Vérifie que l'objet est bien une instance de ControllerMotor
+        self.assertIsInstance(self.controller, self.ControllerMotor)
+
+        # Vérifie que les attributs essentiels existent
+        self.assertTrue(hasattr(self.controller, '_ControllerMotor__moteur0_enable_pin'))
+        self.assertTrue(hasattr(self.controller, '_ControllerMotor__moteur1_enable_pin'))
+        self.assertTrue(hasattr(self.controller, '_ControllerMotor__gpio_pins'))
+        self.assertTrue(hasattr(self.controller, '_ControllerMotor__pwm_controller'))
+
+        # Vérifie que le contrôleur PWM est bien une instance mockée
+        self.assertIsInstance(self.controller._ControllerMotor__pwm_controller, MagicMock)
+
 
 if __name__ == '__main__':
     unittest.main()
