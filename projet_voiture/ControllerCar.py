@@ -198,3 +198,68 @@ class ControllerCar:
         Renvoie la vitesse actuelle du véhicule en m/s.
         """
         return self.current_speed
+
+    
+    def tour_en_8(self, speed=35, cycle_time=12, dt=0.03, cycles=3, amplitude=20):
+        """
+        Réalise un parcours en 8.
+        
+        Pendant chaque cycle, le servo module sa position en fonction d'une fonction sinusoïdale,
+        ce qui crée une trajectoire en 8 lorsque la voiture avance.
+        
+        :param speed: Vitesse de déplacement pendant le 8.
+        :param cycle_time: Durée d'un cycle complet (influence la fréquence des oscillations).
+        :param dt: Intervalle de temps entre deux mises à jour du servo.
+        :param cycles: Nombre de cycles (8) à réaliser.
+        :param amplitude: Amplitude de l'oscillation du servo (en degrés).
+        """
+        try:
+            print("🎯 Lancement du parcours en 8...")
+            for _ in range(cycles):
+                start = time.time()
+                while time.time() - start < cycle_time:
+                    t = time.time() - start
+                    # Calcule l'angle du servo : position centrale 45° modulée par une sinusoïde.
+                    angle = 45 + amplitude * math.sin(2 * math.pi * t / cycle_time)
+                    self.servo_ctrl.setToDegree(angle)
+                    self.motor_ctrl.forward(speed)
+                    time.sleep(dt)
+            self.motor_ctrl.stop()
+            self.servo_ctrl.setToDegree(45)
+            print("✅ Parcours en 8 terminé.")
+        except Exception as e:
+            print("Erreur pendant le tour en 8 :", e)
+        finally:
+            self.motor_ctrl.stop()
+            self.servo_ctrl.disable_pwm()
+            print("Fin de la manœuvre 'tour en 8'.")
+    
+    def rotation_sur_place(self, duration=10, speed=100):
+        """
+        Fait tourner la voiture sur elle-même (rotation différentielle) pendant une durée donnée.
+        Un moteur est commandé en avant et l'autre en arrière.
+        
+        :param duration: Durée de la rotation en secondes (par défaut 10).
+        :param speed: Vitesse de rotation (0 à 100).
+        
+        Attention : cette méthode utilise les attributs internes du moteur (précédés de __)
+        et réalise une gestion directe. Assurez-vous que cela correspond à votre implémentation.
+        """
+        try:
+            print("🔁 Rotation sur place...")
+            pwm_val = self.motor_ctrl._MotorController__scale_speed(speed)
+            self.motor_ctrl._MotorController__apply_motor_state(
+                self.motor_ctrl._MotorController__moteur0_pin_a,
+                self.motor_ctrl._MotorController__moteur0_pin_b,
+                pwm_val
+            )
+            self.motor_ctrl._MotorController__apply_motor_state(
+                self.motor_ctrl._MotorController__moteur1_pin_a,
+                self.motor_ctrl._MotorController__moteur1_pin_b,
+                -pwm_val
+            )
+            time.sleep(duration)
+            print("🛑 Arrêt du mouvement")
+            self.motor_ctrl.stop()
+        except Exception as e:
+            print("Erreur pendant la rotation sur place :", e)
