@@ -12,6 +12,7 @@ Quoi   : Fournit la classe CapteurDistance pour obtenir une mesure filtrée d'un
 """
 
 import time
+import threading
 from gpiozero import DistanceSensor
 
 class CapteurDistance:
@@ -25,12 +26,15 @@ class CapteurDistance:
 
         :param trigger: Numéro de broche GPIO pour le signal trigger.
         :param echo: Numéro de broche GPIO pour le signal echo.
-        :param max_distance: Distance maximale (en mètres) détectable par le capteur (défaut : 4).
-        :param sensor_sample_count: Nombre d'échantillons utilisés pour calculer la moyenne (défaut : 5).
-        :param sensor_sample_delay: Délai entre chaque lecture (en secondes, défaut : 0.01).
+        :param max_distance: Distance maximale (en mètres) détectable par le capteur (défaut  4).
+        :param sensor_sample_count: Nombre d'échantillons utilisés pour calculer la moyenne (défaut  5).
+        :param sensor_sample_delay: Délai entre chaque lecture (en secondes, défaut  0.01).
         """
         self.sensor_sample_count = sensor_sample_count
         self.sensor_sample_delay = sensor_sample_delay
+
+        self._stop_event = threading.Event()
+        self.thread = None
 
         self.sensor = DistanceSensor(trigger=trigger, echo=echo, max_distance=max_distance)
 
@@ -45,3 +49,18 @@ class CapteurDistance:
             total += self.sensor.distance   # distance en mètres
             time.sleep(self.sensor_sample_delay)
         return (total / self.sensor_sample_count) * 100
+
+# Normally all sensors must implement these function but let's just assure CapteurDistance have them at least    
+    def start_thread(self):
+        """Create and start the sensor update thread"""
+        self._stop_event.clear()
+        self._thread = threading.Thread(target=self._update_sensor, daemon=True)
+        self._thread.start()
+        print(f"[{self.name} : thread commence")
+
+    def stop_thread(self):
+        """Signal the thread to stop and wait for it to finish"""
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join()
+        print(f"[{self.name} : thread terminé")
