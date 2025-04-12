@@ -52,8 +52,8 @@ class ControllerCar:
         # Création des trois capteurs en instanciant la classe CapteurDistance
         max_distance = 1.5
 
-        self.capteur_left = CapteurDistance(trigger=26, echo=19, max_distance=max_distance)
-        self.capteur_right = CapteurDistance(trigger=11, echo=9, max_distance=max_distance)
+        self.capteur_left = CapteurDistance(trigger=11, echo=9, max_distance=max_distance)
+        self.capteur_right = CapteurDistance(trigger=26, echo=19, max_distance=max_distance)
         self.capteur_front = CapteurDistance(trigger=6, echo=5, max_distance=max_distance)
 
         # Initialisation des contrôleurs de moteurs et du servo
@@ -115,6 +115,11 @@ class ControllerCar:
             self.cleanup()
 
     def mode_course(self):
+
+        file = [] #FIFO to check median, prevents value errors
+        temp = 0
+        error_margin = 1.3
+
         bobby_speed = True
         #time__of_course = 0 
         # Set the time of one loop to calculate the time of track, instance variable
@@ -130,6 +135,7 @@ class ControllerCar:
         try:
         #while infrared.get_status() != 1: # Check constantly if black line not detected 
             while(True): #zprongpoeiqrgoqenrgôinqrg
+
                 if (bobby_speed):
                     self.motor_ctrl.forward(self.motor_speed_forwards)   # Maintain moderate speed
                 time.sleep(0.1)           # Short delay for sensor updates
@@ -137,38 +143,52 @@ class ControllerCar:
                 # Obtain the front distance reading
                 dist_forward = self.capteur_front.get_distance()
 
+                if (file.count() < 5): 
+                    file.append(dist_forward)
+                    print("added to FIFO")
+                else: 
+                    file.pop(0)
+                    file.append(dist_forward)
+                    print("removed first from FIFO")
+
+                if (file.index(4) > file.index(3) * error_margin or file.index(4) < file.index(3) * error_margin):
+                    file.pop()
+                    print("removed last from FIFO because bulltshit data")
+                
+
                 if dist_forward is None:
                     continue  # Skip loop cycle if sensor data isn't ready
 
                 if (dist_forward >= 20):
                     # No immediate obstacle detected: optionally, adjust course gradually
                     continue  # Skip the rest of the loop and keep accelerating
-
-                # Obstacle detected; begin braking for more time to decide turning
-                self.motor_ctrl.forward(self.motor_speed_backwards*self.acceleration)
-
-                # Get updated lateral sensor readings after braking
-                curr_dist_left = self.capteur_left.get_distance()
-                curr_dist_right = self.capteur_right.get_distance()
-
-                time.sleep(0.3)
-                # If left sensor shows a decreasing distance (i.e. obstacle approaching on left),
-                # then turn right
-                if (curr_dist_left - self.capteur_left.get_distance() < 0):
-                    bobby_speed = False
-                    self.servo_ctrl.setToDegree(self.angle_virage_gauche)
-                    self.motor_ctrl.forward(self.motor_speed_forwards-2) # Small acceleration each time 
-
-                # If right sensor shows a decreasing distance (i.e. obstacle approaching on right),
-                # then turn left
-                elif (curr_dist_right - self.capteur_right.get_distance() < 0):
-                    bobby_speed = False
-                    self.servo_ctrl.setToDegree(self.angle_virage_droite)
-                    self.motor_ctrl.forward(self.motor_speed_forwards-2) # Small acceleration each time 
                 
-                bobby_speed = True
-                time.sleep(0.5)           # Allow time for the turning maneuver to complete
-                self.servo_ctrl.setToDegree(self.angle_central)    # Reset the servo to a straight-ahead position post-maneuver
+                elif (file.index(4) < 20):
+                    # Obstacle detected; begin braking for more time to decide turning
+                    self.motor_ctrl.forward(self.motor_speed_backwards*self.acceleration)
+
+                    # Get updated lateral sensor readings after braking
+                    curr_dist_left = self.capteur_left.get_distance()
+                    curr_dist_right = self.capteur_right.get_distance()
+
+                    time.sleep(0.3)
+                    # If right sensor shows an increasing distance for turning,
+                    # then turn right
+                    if (curr_dist_left - self.capteur_left.get_distance() < 0):
+                        bobby_speed = False
+                        self.servo_ctrl.setToDegree(self.angle_virage_gauche)
+                        self.motor_ctrl.forward(self.motor_speed_forwards-2) # Small acceleration each time 
+
+                    # If left sensor shows an increasing distance for turning,
+                    # then turn left
+                    elif (curr_dist_right - self.capteur_right.get_distance() < 0):
+                        bobby_speed = False
+                        self.servo_ctrl.setToDegree(self.angle_virage_droite)
+                        self.motor_ctrl.forward(self.motor_speed_forwards-2) # Small acceleration each time 
+                    
+                    bobby_speed = True
+                    time.sleep(0.5)           # Allow time for the turning maneuver to complete
+                    self.servo_ctrl.setToDegree(self.angle_central)    # Reset the servo to a straight-ahead position post-maneuver
 
 
             time.sleep(2) # 2 Seconds between confirming the black line and stopping. Should be enough to stop after the black line
@@ -185,6 +205,8 @@ class ControllerCar:
             self.capteur_left.stop_thread()       # All threads stopped if error occured. no error handling idc right now
             self.capteur_right.stop_thread()      
             #self.infrared.stop_thread()
+
+
 
     def handle_emergency_obstacle(self):
         """Gère un obstacle frontal en situation d'urgence."""
