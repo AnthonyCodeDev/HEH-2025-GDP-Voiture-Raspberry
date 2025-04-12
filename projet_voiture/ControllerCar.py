@@ -40,17 +40,17 @@ class ControllerCar:
         self.emergency_threshold = 30    # Seuil pour urgence obstacle frontal
 
         # Paramètres de virage
-        self.angle_virage_gauche = 0
-        self.angle_virage_droite = 90
+        self.angle_virage_gauche = 90
+        self.angle_virage_droite = 0
         self.angle_central = 45
 
         # Durées (en secondes)
         self.duree_virage = 0.3
         self.duree_marche_arriere = 0.4
-        self.reverse_pause = 0.5
+        self.reverse_pause = 0.5 #pourquoi
 
         # Création des trois capteurs en instanciant la classe CapteurDistance
-        max_distance = 1
+        max_distance = 1.5
 
         self.capteur_left = CapteurDistance(trigger=26, echo=19, max_distance=max_distance)
         self.capteur_right = CapteurDistance(trigger=11, echo=9, max_distance=max_distance)
@@ -151,19 +151,19 @@ class ControllerCar:
                 curr_dist_left = self.capteur_left.get_distance()
                 curr_dist_right = self.capteur_right.get_distance()
 
-                time.sleep(0.5)
+                time.sleep(0.3)
                 # If left sensor shows a decreasing distance (i.e. obstacle approaching on left),
                 # then turn right
                 if (curr_dist_left - self.capteur_left.get_distance() < 0):
                     bobby_speed = False
-                    self.servo_ctrl.setToDegree(self.angle_virage_droite)
+                    self.servo_ctrl.setToDegree(self.angle_virage_gauche)
                     self.motor_ctrl.forward(self.motor_speed_forwards-2) # Small acceleration each time 
 
                 # If right sensor shows a decreasing distance (i.e. obstacle approaching on right),
                 # then turn left
                 elif (curr_dist_right - self.capteur_right.get_distance() < 0):
                     bobby_speed = False
-                    self.servo_ctrl.setToDegree(self.angle_virage_gauche)
+                    self.servo_ctrl.setToDegree(self.angle_virage_droite)
                     self.motor_ctrl.forward(self.motor_speed_forwards-2) # Small acceleration each time 
                 
                 bobby_speed = True
