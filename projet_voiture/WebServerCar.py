@@ -61,7 +61,7 @@ class VoitureServer:
         action = request.form.get('action')
         if action == 'lancer':
             print("🚀 Lancement de la voiture en mode autonome")
-            thread = threading.Thread(target=self.autonomous_controller.run)
+            thread = threading.Thread(target=self.autonomous_controller.mode_course)
             thread.start()
         elif action == 'reset':
             print("🔄 Réinitialisation et relancement (non implémenté)")

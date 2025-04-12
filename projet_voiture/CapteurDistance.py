@@ -34,7 +34,7 @@ class CapteurDistance:
         self.sensor_sample_delay = sensor_sample_delay
 
         self._stop_event = threading.Event()
-        self.thread = None
+        self._thread = None
 
         self.sensor = DistanceSensor(trigger=trigger, echo=echo, max_distance=max_distance)
 
@@ -54,13 +54,13 @@ class CapteurDistance:
     def start_thread(self):
         """Create and start the sensor update thread"""
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self._update_sensor, daemon=True)
+        self._thread = threading.Thread(target=self.get_distance, daemon=True)
         self._thread.start()
-        print(f"[{self.name} : thread commence")
+        print(f"thread commence")
 
     def stop_thread(self):
         """Signal the thread to stop and wait for it to finish"""
         self._stop_event.set()
         if self._thread:
             self._thread.join()
-        print(f"[{self.name} : thread terminé")
+        print(f"thread terminé")

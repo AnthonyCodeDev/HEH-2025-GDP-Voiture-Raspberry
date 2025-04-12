@@ -114,6 +114,7 @@ class ControllerCar:
         finally:
             self.cleanup()
 
+    # Okay it doesn't work I tried my best rest in peace
     def mode_course(self):
 
         file = [] #FIFO to check median, prevents value errors
@@ -143,17 +144,22 @@ class ControllerCar:
                 # Obtain the front distance reading
                 dist_forward = self.capteur_front.get_distance()
 
-                if (file.count() < 5): 
+                if (len(file) < 5): 
                     file.append(dist_forward)
-                    print("added to FIFO")
+                    print(f"added to FIFO: {dist_forward} | length of FIFO: {len(file)}")
                 else: 
                     file.pop(0)
                     file.append(dist_forward)
-                    print("removed first from FIFO")
+                    print(f"removed first from FIFO: {dist_forward} | length of FIFO: {len(file)}")
 
-                if (file.index(4) > file.index(3) * error_margin or file.index(4) < file.index(3) * error_margin):
-                    file.pop()
-                    print("removed last from FIFO because bulltshit data")
+                if (len(file) > 1):
+                    if (dist_forward > (file.index(dist_forward) - 1) * error_margin or dist_forward < (file.index(dist_forward) - 1) * error_margin):
+                        temps = dist_forward
+                        print(f"Old dist_forward: {dist_forward}")
+                        file.pop(file.index(dist_forward))
+                        dist_forward = (file.index(temps) - 1)
+                        print(f"New dist_forward: {dist_forward}")
+                        print(f"removed last from FIFO because bulltshit data | length of FIFO: {len(file)}")
                 
 
                 if dist_forward is None:
@@ -163,7 +169,7 @@ class ControllerCar:
                     # No immediate obstacle detected: optionally, adjust course gradually
                     continue  # Skip the rest of the loop and keep accelerating
                 
-                elif (file.index(4) < 20):
+                elif (file.index(dist_forward) < 40):
                     # Obstacle detected; begin braking for more time to decide turning
                     self.motor_ctrl.forward(self.motor_speed_backwards*self.acceleration)
 
