@@ -2,7 +2,7 @@
 
 Ce projet implémente un système de voiture robotique autonome basé sur Raspberry Pi. La voiture utilise plusieurs capteurs (distance ultrason, ligne, RGB) pour naviguer de façon autonome tout en évitant les obstacles.
 
-## 🚗 Fonctionnalités
+## Fonctionnalités
 
 - **Navigation autonome** avec évitement d'obstacles
 - **Détection de couleurs** pour déclencher des actions (démarrage avec couleur verte)
@@ -10,7 +10,7 @@ Ce projet implémente un système de voiture robotique autonome basé sur Raspbe
 - **Interface web** pour contrôler la voiture à distance
 - **Modes spéciaux** : trajectoire en 8, rotation sur place
 
-## 📂 Structure du projet
+## Structure du projet
 
 ```
 HEH-2025-GDP-Voiture-Raspberry/
@@ -37,7 +37,7 @@ HEH-2025-GDP-Voiture-Raspberry/
 │   └── test_lineFollower.py  # Tests pour le détecteur de ligne
 ```
 
-## 🏁 Démarrage
+## Démarrage
 
 1. Clonez ce dépôt sur votre Raspberry Pi
 2. Assurez-vous d'avoir installé toutes les dépendances requises
@@ -48,7 +48,7 @@ cd HEH-2025-GDP-Voiture-Raspberry
 python3 projet_voiture/main.py
 ```
 
-## 🔌 Matériel requis
+## Matériel requis
 
 - Raspberry Pi (compatible avec GPIOZero)
 - Capteurs à ultrasons (x3)
@@ -59,7 +59,7 @@ python3 projet_voiture/main.py
 - Module PWM PCA9685
 - Batterie et alimentation
 
-## 🌐 Interface Web
+## Interface Web
 
 Une interface web est disponible sur le port 5000 du Raspberry Pi, permettant de:
 - Lancer la voiture en mode autonome
@@ -67,7 +67,7 @@ Une interface web est disponible sur le port 5000 du Raspberry Pi, permettant de
 - Arrêter la voiture
 - Exécuter des manœuvres spéciales (tour en 8, rotation)
 
-## 🧪 Tests
+## Tests
 
 Le projet inclut des tests unitaires pour chaque composant. Pour les exécuter :
 
@@ -75,20 +75,3 @@ Le projet inclut des tests unitaires pour chaque composant. Pour les exécuter :
 cd HEH-2025-GDP-Voiture-Raspberry/testing
 python3 -m unittest discover
 ```
-
-## 👨‍💻 Auteurs
-
-- **Anthony Vergeylen** - Développement principal
-- **Wiktor** - Dev et testeur + logique du code métier
-- **Rayan** - Dev et testeur 
-- **Andrea** - Dev et testeur
-- **Dorian** - gitmaster/dev et testeur
-- **Matteo** - Dev et testeur
-
-## 📅 Date du projet
-
-Avril 2025
-
-## 📄 Licence
-
-Ce projet est distribué sous licence libre. Voir le fichier LICENSE pour plus d'informations.
